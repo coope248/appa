@@ -16,12 +16,10 @@ class Propagator():
         
 
         
-    def propagate(self, tf, dt):
+    def propagate(self, spacecraft, tf, dt):
         
-
-
-        t0 = 0#spacecraft.t[-1]
-        y0 = [0,6378+500,0,1.5+np.sqrt(mu/(6378+500)),0,0]#spacecraft.y[-1]
+        t0 = spacecraft.t
+        y0 = spacecraft.y
         steps = np.ceil((tf-t0)/dt)
         t = np.zeros((int(steps),1))
         y = np.zeros((int(steps),6))
