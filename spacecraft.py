@@ -37,10 +37,18 @@ class Spacecraft():
 
     def impulse_maneuver(self, delta_v):
         # add impulsive maneuver to trajectory, instantly changing the velocity vector
-        delta_v = np.array([0,0,0]+delta_v)
+        delta_v = np.array(delta_v)
+        r = self.y[0:3]
+        v = self.y[3:6]
 
         #convert VNB reference frame to inertial
-        
+        v_hat = v / np.linalg.norm(v)
+        h = np.cross(r,v)
+        n_hat = h / np.linalg.norm(h)
+        b_hat = np.cross(v_hat,n_hat)
+
+        rot_mat = np.array([v_hat,n_hat,b_hat])
+        delta_v = np.dot(delta_v,rot_mat)
         #add delta V to current velocity
-        self.y += delta_v
+        self.y += np.insert(delta_v,[0,0,0],0)
     
