@@ -15,21 +15,8 @@ v0=y0[3:6]
 sc = Spacecraft(t0,r0,v0)
 prop = Propagator()
 sc.propagate(prop, 10000, 1)
-sc.plot()
-sc.impulse_maneuver([0,1,0])
-sc.propagate(prop,sc.t+5000,1)
-sc.plot()
-print(np.absolute(sc.ys).max())
-#t,y = prop.propagate(10000,1)
-#x_vals = y[:,0]
-#y_vals = y[:,1]
-#z_vals = y[:,2]
-#fig = px.line_3d(x = x_vals, 
-#                         y = y_vals, 
-#                         z = z_vals, 
-#                        title = "orbit plot") 
-#fig.show()
+fig = sc.plot(show=False)
+sc.impulse_maneuver([2,0,0])
+sc.propagate(prop,sc.t+19000,1)
+sc.add_plot(fig,show=True)
 
-#sc.propagate(prop, 100, 1)
-#delta_v = np.array([1,0,0])
-#sc.impulsive_maneuver(delta_v)

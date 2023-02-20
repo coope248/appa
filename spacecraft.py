@@ -1,6 +1,7 @@
 import numpy as np
 
 import plotly.express as px
+import plotly.graph_objects as go
 
 
 class Spacecraft():
@@ -22,18 +23,53 @@ class Spacecraft():
     def plot(self, show=True):
         # plot trajectory of spacecraft so far, 
         # returns plotly figure to allow multiple plots using add_plot method
-        fig = px.line_3d(x = self.ys[:,0], 
-                         y = self.ys[:,1], 
-                         z = self.ys[:,2], 
-                        title = "orbit plot") 
+
+        bound = np.absolute(self.ys).max() + 500
+        xMax = [-bound,-bound,-bound,-bound,bound,bound,bound,bound]
+        yMax = [-bound,-bound,bound,bound,-bound,-bound,bound,bound]
+        zMax = [-bound,bound,-bound,bound,-bound,bound,-bound,bound]
+        fig = go.Figure()
+        fig.add_trace(go.Scatter3d(x = xMax, 
+                         y = yMax, 
+                         z = zMax,
+                        mode = 'markers',
+                        marker=dict(
+                            size=0.01,
+                            opacity=0.01)))
+        fig.add_trace(go.Scatter3d(
+            x=self.ys[:,0],
+            y=self.ys[:,1],
+            z=self.ys[:,2],
+                mode='lines',))
+
         if show:
             fig.show()
         return fig
 
-    def add_plot(self, fig):
+    def add_plot(self, fig, show=True):
         #adds plot of spacecraft to previously created plotly figure
-        ...
+        fig.add_trace(go.Scatter3d(x = self.ys[:,0],
+                                 y = self.ys[:,1],
+                                 z = self.ys[:,2],
+                                   mode = 'lines',
+                                   line=dict(
+                                            color='darkblue',
+                                            width=2
+                                            )   
+                                   ))
 
+        bound = np.absolute(self.ys).max() + 500
+        xMax = [-bound,-bound,-bound,-bound,bound,bound,bound,bound]
+        yMax = [-bound,-bound,bound,bound,-bound,-bound,bound,bound]
+        zMax = [-bound,bound,-bound,bound,-bound,bound,-bound,bound]
+        fig.update_traces(
+                        x = xMax,
+                        y = yMax,
+                        z = zMax,
+                        selector=dict(type="scatter3d", mode="markers"))
+        if show:
+            fig.show()
+        
 
     def impulse_maneuver(self, delta_v):
         # add impulsive maneuver to trajectory, instantly changing the velocity vector

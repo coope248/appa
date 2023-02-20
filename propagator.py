@@ -16,7 +16,7 @@ class Propagator():
         
 
         
-    def propagate(self, spacecraft, tf, dt):
+    def propagate(self, spacecraft, tf, dt, stop_cond=None):
         
         t0 = spacecraft.t
         y0 = spacecraft.y
@@ -29,11 +29,14 @@ class Propagator():
         self.solver.set_initial_value(y[0],t[0])
         
         i = 1
-        while self.solver.successful() and i < steps:
+        while (self.solver.successful()) and (i < steps) and (not stop):
             self.solver.integrate(self.solver.t+dt)
             t[i] = self.solver.t
             y[i] = self.solver.y
             i += 1
+            if(bool(stop_cond)):
+                stop = not False in [bool(f(solver.t,solver.y)) for f in stop_cond]
+
         
         return t,y
     def EOM(self,t,y):
