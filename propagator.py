@@ -29,15 +29,26 @@ class Propagator():
         self.solver.set_initial_value(y[0],t[0])
         
         i = 1
+        stop = False
         while (self.solver.successful()) and (i < steps) and (not stop):
             self.solver.integrate(self.solver.t+dt)
             t[i] = self.solver.t
             y[i] = self.solver.y
             i += 1
             if(bool(stop_cond)):
-                stop = not False in [bool(f(solver.t,solver.y)) for f in stop_cond]
+                stop = True in [f(self.solver.t,self.solver.y) for f in stop_cond]
 
-        
+        # if stopped, remove unused array indices
+        if 0 in t[1:]:
+            indices = np.where(t==0)[0]
+            if indices[0]==0:
+                first_zero = indices[1]
+            else:
+                first_zero = indices[0]
+                
+            t =  t[0:first_zero]
+            y = y[~np.all(y==0,axis=1)]
+            print(t.shape,y.shape)
         return t,y
     def EOM(self,t,y):
         

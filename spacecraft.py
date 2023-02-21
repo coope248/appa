@@ -13,7 +13,7 @@ class Spacecraft():
         self.ys = np.array([r0+v0])
 
     def propagate(self, propagator, tf, dt, stop_cond=None):
-        t,y = propagator.propagate(self, tf, dt)
+        t,y = propagator.propagate(self, tf, dt, stop_cond)
         self.ts = np.append(self.ts,t)
         self.ys = np.append(self.ys,y,0)
         self.t = t[-1]
