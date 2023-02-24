@@ -35,9 +35,22 @@ def modkep2state(r_apo=6800, r_per=6800, inc=0, aop=0, raan=0, ta=0, mu=398600.4
     ecc = (r_apo/sma) - 1
     return kep2state(sma, ecc, inc, aop, raan, ta, mu)
 
-def state2kep(state):
-    #calculate keplerian parameters from pos and vel (including C, r_p, r_a, fpa)
+def state2kep(statei, mu=398600.4):
+    #calculate keplerian parameters from pos and vel (including C3, r_p, r_a, fpa)
     x,y,z,vx,vy,vz = state
+    r = np.linalg.norm([x,y,z])
+    v = np.linalg.norm([vx,vy,vz])
+
+    c3 = (v**2 / 2) - (mu/r)
+    h = np.cross([x,y,z],[vx,vy,vz])
+    h_mag = np.linalg.norm(h)
+
+    slr = h_mag**2 / mu
+    sma = -mu / (2*c3)
+    ecc = np.sqrt(1 - (slr/sma))
+
+
+
 
 
 def rth2eci(raan=0, inc=0, aol=0):
