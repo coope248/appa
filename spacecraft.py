@@ -11,6 +11,7 @@ class Spacecraft():
         self.y = np.array(r0+v0)
         self.ts = np.array([t0])
         self.ys = np.array([r0+v0])
+        self.thrust = 0
 
     def propagate(self, propagator, tf, dt, stop_cond=None):
         t,y = propagator.propagate(self, tf, dt, stop_cond)

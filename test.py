@@ -1,4 +1,4 @@
-import toolbox
+import toolbox as tb
 from propagator import Propagator
 from spacecraft import Spacecraft
 from functools import partial
@@ -9,6 +9,7 @@ import numpy as np
 def max_epoch(t,state,max=20000):
     x,y,z,vx,vy,vz = state
     return t>max
+
 
 if __name__ == "__main__":
     mu = 398600.4
@@ -23,11 +24,23 @@ if __name__ == "__main__":
     sc = []
 
     prop = Propagator()
-    for i in range(50):
+    for i in range(5):
         sc.append(Spacecraft(t0,r0,v0))
-        sc[i].propagate(prop, 10000, 1)
-        sc[i].impulse_maneuver([-i/15,i/7.5,0])
-        sc[i].propagate(prop,sc[i].t+19000,1)
+        sc[i].propagate(prop, 10000, 10)
+        prop.add_perturbation('low_thrust')
+        sc[i].thrust = 0.00001*(i+1)
+        #sc[i].impulse_maneuver([i/25,0,0])
+        sc[i].propagate(prop,sc[i].t+11000,100)
+        #sc[i].impulse_maneuver([1,0,0])
+        sc[i].propagate(prop,sc[i].t+10000,100)
+
+    for craft in sc:
+    
+        keps = [tb.state2kep(state) for state in craft.ys]
+        es = [kep['ecc'] for kep in keps]
+
+        eFig = px.line(x=craft.ts,y=es)
+        eFig.show()
         
 
 

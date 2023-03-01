@@ -15,7 +15,7 @@ def kep2state(sma = 6800, ecc = 0, inc = 0, aop = 0, raan = 0, ta = 0, mu =39860
     v = np.sqrt(2 * (c3 + mu/r))
     fpa = np.arccos( h / (r * v))
 
-    if ta > 180:
+    if ta > np.pi:
         fpa *= -1
 
     v_rth = [v * np.sin(fpa), v * np.cos(fpa), 0]
@@ -29,26 +29,80 @@ def kep2state(sma = 6800, ecc = 0, inc = 0, aop = 0, raan = 0, ta = 0, mu =39860
     return [x,y,z,vx,vy,vz]
 
 
-def modkep2state(r_apo=6800, r_per=6800, inc=0, aop=0, raan=0, ta=0, mu=398600.4):
+def modkep2state(ra=6800, rp=6800, inc=0, aop=0, raan=0, ta=0, mu=398600.4):
     #calculate r and v with given modified keplerian parameters
     sma = (r_per+r_apo)/2
     ecc = (r_apo/sma) - 1
     return kep2state(sma, ecc, inc, aop, raan, ta, mu)
 
-def state2kep(statei, mu=398600.4):
+def state2kep(state, mu=398600.4):
     #calculate keplerian parameters from pos and vel (including C3, r_p, r_a, fpa)
     x,y,z,vx,vy,vz = state
     r = np.linalg.norm([x,y,z])
+    r_hat = np.array([x,y,z])/r
+    r_vec = r_hat*r
     v = np.linalg.norm([vx,vy,vz])
+    v_hat = np.array([vx,vy,vz])/v
+    v_vec = v_hat*v
 
     c3 = (v**2 / 2) - (mu/r)
     h = np.cross([x,y,z],[vx,vy,vz])
     h_mag = np.linalg.norm(h)
+    h_hat = h/h_mag
+
+    theta_hat = np.cross(h_hat,r_hat)
 
     slr = h_mag**2 / mu
     sma = -mu / (2*c3)
     ecc = np.sqrt(1 - (slr/sma))
+    e_vec = np.cross(v_vec,h)/mu - r_hat
+    e_hat = e_vec/ecc
+    fpa = np.arcsin(np.dot(v_hat,r_hat)) 
+    
+    if np.dot(v_hat,r_hat) < 0:
+        ta = 2*np.pi - np.arccos(np.dot(r_hat,e_hat))
+    else:
+        ta = np.arccos(np.dot(r_hat,e_hat))
 
+    inc = np.arccos(h_hat[2])
+    
+    line_of_nodes = np.cross([0,0,1],h)
+    n_mag = np.linalg.norm(line_of_nodes)
+    n_hat = line_of_nodes/n_mag
+    
+    if line_of_nodes[1] < 0:
+        raan = 2*np.pi - np.arccos(n_hat[0])
+    else:
+        raan = np.arccos(n_hat[0])
+
+    if e_hat[2] < 0:
+        aop = 2*np.pi - np.arccos(np.dot(n_hat,e_hat))
+    else: 
+        aop = np.arccos(np.dot(n_hat,e_hat))
+    
+    rp = sma*(1-ecc)
+    ra = sma*(1+ecc)
+
+    vp_mag = np.sqrt((1+ecc) * (mu/rp))
+    
+    va_mag = np.sqrt((1-ecc) * (mu/ra))
+    
+    dict = {'sma':sma,
+            'ecc':ecc,
+            'inc':inc,
+            'aop':aop,
+            'raan':raan,
+            'ta':ta,
+            'c3':c3,
+            'fpa':fpa,
+            'rp':rp,
+            'ra':ra,
+            'vp':vp_mag,
+            'va':va_mag,
+            }
+
+    return dict
+    
 
 
 

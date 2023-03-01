@@ -14,6 +14,15 @@ class Propagator():
         self.solver = ode(self.EOM) 
         self.solver.set_integrator('dop853')
         
+    def add_perturbation(self,perturbation):
+        possible_perturbs = [
+                'low_thrust',
+                ]
+        if perturbation not in possible_perturbs:
+            raise Exception('Perturbation type not valid')
+            return
+
+        self.perturbations.append(perturbation)
 
         
     def propagate(self, spacecraft, tf, dt, stop_cond=None):
@@ -30,6 +39,8 @@ class Propagator():
         
         i = 1
         stop = False
+        if 'low_thrust' in self.perturbations:
+            self.thrust = spacecraft.thrust
         while (self.solver.successful()) and (i < steps) and (not stop):
             self.solver.integrate(self.solver.t+dt)
             t[i] = self.solver.t
@@ -50,17 +61,20 @@ class Propagator():
             y = y[~np.all(y==0,axis=1)]
             print(t.shape,y.shape)
         return t,y
+
+
     def EOM(self,t,y):
         
         pos = np.array(y[0:3])
         vel = np.array(y[3:6])
         
         r_mag = np.linalg.norm(pos)
-
+        v_mag = np.linalg.norm(vel)
         acc = -pos * mu / pow(r_mag,3)
 
-        if 'j2' in [p.lower() for p in self.perturbations]:
-            acc += acc_j2
+        if 'low_thrust' in self.perturbations:
+            acc_lt = self.thrust * (vel / v_mag)
+            acc += acc_lt
 
         return [vel[0], vel[1], vel[2], acc[0], acc[1], acc[2]]
         
