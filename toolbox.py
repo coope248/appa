@@ -9,16 +9,16 @@ def kep2state(sma = 6800, ecc = 0, inc = 0, aop = 0, raan = 0, ta = 0, mu =39860
     aol = ta+aop
     slr = sma * (1 - ecc**2)
     c3 = -mu / (2*sma)
-    h = np.sqrt(mu * slr)
+    h = math.sqrt(mu * slr)
 
-    r = slr / (1 + ecc * np.cos(ta))
-    v = np.sqrt(2 * (c3 + mu/r))
+    r = slr / (1 + ecc * math.cos(ta))
+    v = math.sqrt(2 * (c3 + mu/r))
     fpa = np.arccos( h / (r * v))
 
     if ta > np.pi:
         fpa *= -1
 
-    v_rth = [v * np.sin(fpa), v * np.cos(fpa), 0]
+    v_rth = [v * math.sin(fpa), v * math.cos(fpa), 0]
     r_rth = [r, 0, 0]
 
     rot_mat = rth2eci(raan=raan, inc=inc, aol=aol)
@@ -56,7 +56,10 @@ def state2kep(state, mu=398600.4):
     sma = -mu / (2*c3)
     ecc = np.sqrt(1 - (slr/sma))
     e_vec = np.cross(v_vec,h)/mu - r_hat
-    e_hat = e_vec/ecc
+    if ecc != 0:
+        e_hat = e_vec/ecc
+    else:
+        e_hat = np.array([0,0,0])
     fpa = np.arcsin(np.dot(v_hat,r_hat)) 
     
     if np.dot(v_hat,r_hat) < 0:
@@ -68,8 +71,10 @@ def state2kep(state, mu=398600.4):
     
     line_of_nodes = np.cross([0,0,1],h)
     n_mag = np.linalg.norm(line_of_nodes)
-    n_hat = line_of_nodes/n_mag
-    
+    if n_mag != 0:
+        n_hat = line_of_nodes/n_mag
+    else:
+        n_hat = np.array([0,0,0])
     if line_of_nodes[1] < 0:
         raan = 2*np.pi - np.arccos(n_hat[0])
     else:
@@ -109,9 +114,9 @@ def state2kep(state, mu=398600.4):
 
 def rth2eci(raan=0, inc=0, aol=0):
     #calculate rotation matrix from r_hat, theta_hat, h_hat frame to ECI frame
-    co,so = [np.cos(raan), np.sin(raan)]
-    ci,si = [np.cos(inc), np.sin(inc)]
-    ct,st = [np.cos(aol), np.sin(aol)]
+    co,so = [math.cos(raan), math.sin(raan)]
+    ci,si = [math.cos(inc), math.sin(inc)]
+    ct,st = [math.cos(aol), math.sin(aol)]
     x = [co*ct - so*ci*st, -co*st - so*ci*ct, so*si]
     y = [so*ct + co*ci*st, -so*st + co*ci*ct, -co*si]
     z = [si*st, si*ct, ci]
