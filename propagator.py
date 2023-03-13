@@ -1,13 +1,12 @@
 import numpy as np
 from scipy.integrate import ode
 
-
-mu = 398602.545 #constants["g"]
+from solarsystem import bodies
 
 class Propagator():
     
 
-    def __init__(self, central_body='earth', perturbations=[]):
+    def __init__(self, central_body='Earth', perturbations=[]):
         
         self.central_body = central_body
         self.perturbations = perturbations
@@ -70,7 +69,7 @@ class Propagator():
         
         r_mag = np.linalg.norm(pos)
         v_mag = np.linalg.norm(vel)
-        acc = -pos * mu / pow(r_mag,3)
+        acc = -pos * bodies[self.central_body]["mu"] / pow(r_mag,3)
 
         if 'low_thrust' in self.perturbations:
             acc_lt = self.thrust * (vel / v_mag)
