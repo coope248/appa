@@ -5,7 +5,40 @@ import plotly.graph_objects as go
 
 
 class Spacecraft():
+    """
+    A class that represents the physical aspects of a spacecraft in orbit. Holds trajectory, fuel, and plotting information
 
+    ...
+
+    Attributes
+    ----------
+
+    t : 
+        current time value for craft
+    y : 
+        current state [x,y,z,vx,vy,vz]
+    ts :
+        array of all t values in spacecraft history
+    ys : 
+        array of all states corresponding to times in ts
+    thrust :
+        engine thrust of craft (used for finite burn calculations)
+
+
+    Methods
+    -------
+
+    propagate(self, propagator, tf, dt, stop_cond=None):
+        moves spacecraft forward in time according to EOMs defined by propagator 
+    plot(show=True):
+        plots the trajectory of the spacecraft, returns plotly plog figure
+    add_plot(fig, show=True):
+        adds the spacecraft's trajectory to the plotly figure passed as fig
+    impulse_maneuver(delta_v):
+        takes a delta_v in the VNB system and adds it to the current state, keeping t constant to simulate an instantaneous change in velocity of the craft
+
+    """
+    
     def __init__(self, t0, r0, v0):
         self.t = np.array(t0)
         self.y = np.array(r0+v0)
