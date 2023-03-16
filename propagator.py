@@ -4,9 +4,45 @@ from scipy.integrate import ode
 from solarsystem import bodies
 
 class Propagator():
+    '''
+    Class that takes care of the actual integration/propagation of a trajectory for a spacecraft object
+    
+    ...
+
+    Attributes:
+    -----------
+
+    central_body : str
+        Name of body from solar system file that the propagator uses as the central body for gravitational acceleration
+
+    perturbations : list
+        list of perturbations to calculate and add to the central body's gravitaion in the EOM
+
+    Methods:
+    --------
+
+    add_perturbation(perturbation):
+        validates perturbation and adds it to the perturbation list attribute
+    propagate(spacecraft, tf, dt, stop_cond=None):
+        propagates passed spacecraft's trajectory
+    EOM(t, y):
+        System equations of motion, returns time derivative of state at given time and state
+    '''
     
 
     def __init__(self, central_body='Earth', perturbations=[]):
+        '''
+        Creates propagator object with given parameters
+
+        Parameters:
+        ----------
+        
+        central_body : str, optional
+            The central body used for main gravitational acceleration in EOM
+        perturbations : list, optional
+            list of perturbations used in the EOM
+
+        '''
         
         self.central_body = central_body
         self.perturbations = perturbations
@@ -14,6 +50,22 @@ class Propagator():
         self.solver.set_integrator('dop853')
         
     def add_perturbation(self,perturbation):
+        '''
+        Validates given perturbation and adds to the propagator's internal list of perturbations
+
+        Parameters:
+        -----------
+
+        perurbation : str
+            name of perturbation to be validated and added to propagator
+
+        Allowed Perturbations:
+        ----------------------
+        
+        low_thrust: 
+            adds a thrust acceleration (defined in spacecraft object) in direction of velocity vector
+
+        '''
         possible_perturbs = [
                 'low_thrust',
                 ]
@@ -25,7 +77,22 @@ class Propagator():
 
         
     def propagate(self, spacecraft, tf, dt, stop_cond=None):
-        
+        '''
+        Performs the integration/propagation of the spacecraft's trajectory this function can also be called using the spacecraft's propagate object
+
+        Parameters:
+        -----------
+
+        spacecraft : spacecraft object
+            spacecraft to be propagated
+        tf : float
+            ending time value for propagation
+        dt : float
+            time difference between points in state outputs
+        stop_cond : list, optional 
+            list of stop condition functions. propagation will stop if any function in list returns true. functions should be in form of f(time, state) and return bool
+            
+        '''
         t0 = spacecraft.t
         y0 = spacecraft.y
         steps = np.ceil((tf-t0)/dt)
@@ -63,7 +130,24 @@ class Propagator():
 
 
     def EOM(self,t,y):
-        
+        '''
+        Equations of motion for the system modeled by the propagator object
+
+        Parameters:
+        -----------
+
+        t : float
+            time of state
+        y : 6-vector
+            position in state space in form of [x, y, z, vx, vy, vz]
+
+        Returns:
+        --------
+
+        y_prime : 6-vector
+            dy/dt at given state and time essentially just [vx, vy, vz, ax, ay, az]
+
+        '''
         pos = np.array(y[0:3])
         vel = np.array(y[3:6])
         

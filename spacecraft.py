@@ -13,15 +13,15 @@ class Spacecraft():
     Attributes
     ----------
 
-    t : 
+    t : float 
         current time value for craft
-    y : 
+    y : 3-vector
         current state [x,y,z,vx,vy,vz]
-    ts :
+    ts : array
         array of all t values in spacecraft history
-    ys : 
+    ys : array of 3-vectors
         array of all states corresponding to times in ts
-    thrust :
+    thrust : float
         engine thrust of craft (used for finite burn calculations)
 
 
@@ -43,8 +43,8 @@ class Spacecraft():
         '''
         Creates spacecraft object given initial state information
 
-        Inputs:
-        -------
+        Parameters:
+        -----------
 
         t0 : float
             t0 (Epoch) of spacecraft given in seconds since J2000
@@ -68,8 +68,8 @@ class Spacecraft():
         '''
         propagates spacecraft trajcetory using given propagator
         
-        Inputs:
-        -------
+        Parameters:
+        -----------
 
         propagator : orbit propagator object
             the propagator object used to calculate trajectory
@@ -80,7 +80,7 @@ class Spacecraft():
         dt : float
             time between data points of state arrays (does not affect numeric integration dt which is taken care of by integrator)
 
-        stop_cond=None : list
+        stop_cond : list, optional
             list of stop condition functions to pass to the propagator object. propagation will stop if any function in list returns true. functions should be in form of f(time, state) and return bool
 
 
@@ -96,10 +96,10 @@ class Spacecraft():
         '''
         Plots all trajectory points in state arrays for spacecraft object
 
-        Inputs:
-        -------
+        Parameters:
+        -----------
 
-        show=True : bool
+        show : bool, optional
             used to determine whether or not to show plot object after creating plotly figure object
 
         Returns:
@@ -135,13 +135,13 @@ class Spacecraft():
         '''
         Adds trajectory of spacecraft to an existing plotly figure
 
-        inputs:
-        -------
+        Parameters:
+        -----------
 
         fig : plotly figure
             figure that trajectory plot is added to
 
-        show=True : Bool
+        show : Bool, optional
             determines whether or not to show resulting figure after trajectory is added
         '''
         fig.add_trace(go.Scatter3d(x = self.ys[:,0],
@@ -171,8 +171,8 @@ class Spacecraft():
         '''
         Adds an instantaneous delta-v to the spacecraft's state
 
-        Inputs:
-        -------
+        Parameters:
+        -----------
 
         delta_v : 3-vector
             delta-V vector to add to spacecrafts current velocity (in VNB frame)
