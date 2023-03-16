@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 
 class Spacecraft():
     """
-    A class that represents the physical aspects of a spacecraft in orbit. Holds trajectory, fuel, and plotting information
+    Class representing the physical aspects of a spacecraft in orbit. Holds trajectory, fuel, and plotting information
 
     ...
 
@@ -40,6 +40,24 @@ class Spacecraft():
     """
     
     def __init__(self, t0, r0, v0):
+        '''
+        Creates spacecraft object given initial state information
+
+        Inputs:
+        -------
+
+        t0 : float
+            t0 (Epoch) of spacecraft given in seconds since J2000
+
+        r0 : 3-vector
+            position of spacecraft in km at t = t0 in J2000 Frame (not Ecliptic)
+
+        v0 : 3-vector
+            velocity of spacecraft in km/s at t = t0
+
+        '''
+
+
         self.t = np.array(t0)
         self.y = np.array(r0+v0)
         self.ts = np.array([t0])
@@ -47,6 +65,26 @@ class Spacecraft():
         self.thrust = 0
 
     def propagate(self, propagator, tf, dt, stop_cond=None):
+        '''
+        propagates spacecraft trajcetory using given propagator
+        
+        Inputs:
+        -------
+
+        propagator : orbit propagator object
+            the propagator object used to calculate trajectory
+
+        tf : float
+            final time of trajectory. propagates until t = tf unless stop condition is met
+
+        dt : float
+            time between data points of state arrays (does not affect numeric integration dt which is taken care of by integrator)
+
+        stop_cond=None : list
+            list of stop condition functions to pass to the propagator object. propagation will stop if any function in list returns true. functions should be in form of f(time, state) and return bool
+
+
+        '''
         t,y = propagator.propagate(self, tf, dt, stop_cond)
         self.ts = np.append(self.ts,t)
         self.ys = np.append(self.ys,y,0)
@@ -55,9 +93,22 @@ class Spacecraft():
 
 
     def plot(self, show=True):
-        # plot trajectory of spacecraft so far, 
-        # returns plotly figure to allow multiple plots using add_plot method
+        '''
+        Plots all trajectory points in state arrays for spacecraft object
 
+        Inputs:
+        -------
+
+        show=True : bool
+            used to determine whether or not to show plot object after creating plotly figure object
+
+        Returns:
+        -------
+
+        fig : plotly figure object
+            plotly figure that can be manipulated and/or passed to add_plot method (see plotly documentation for more information)
+
+        '''
         bound = np.absolute(self.ys).max() + 500
         xMax = [-bound,-bound,-bound,-bound,bound,bound,bound,bound]
         yMax = [-bound,-bound,bound,bound,-bound,-bound,bound,bound]
@@ -81,7 +132,18 @@ class Spacecraft():
         return fig
 
     def add_plot(self, fig, show=True):
-        #adds plot of spacecraft to previously created plotly figure
+        '''
+        Adds trajectory of spacecraft to an existing plotly figure
+
+        inputs:
+        -------
+
+        fig : plotly figure
+            figure that trajectory plot is added to
+
+        show=True : Bool
+            determines whether or not to show resulting figure after trajectory is added
+        '''
         fig.add_trace(go.Scatter3d(x = self.ys[:,0],
                                  y = self.ys[:,1],
                                  z = self.ys[:,2],
@@ -106,7 +168,16 @@ class Spacecraft():
         
 
     def impulse_maneuver(self, delta_v):
-        # add impulsive maneuver to trajectory, instantly changing the velocity vector
+        '''
+        Adds an instantaneous delta-v to the spacecraft's state
+
+        Inputs:
+        -------
+
+        delta_v : 3-vector
+            delta-V vector to add to spacecrafts current velocity (in VNB frame)
+        '''
+
         delta_v = np.array(delta_v)
         r = self.y[0:3]
         v = self.y[3:6]
