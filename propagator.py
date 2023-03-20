@@ -2,6 +2,7 @@ import numpy as np
 from scipy.integrate import ode
 
 from solarsystem import bodies
+import toolbox as tb
 
 class Propagator():
     '''
@@ -30,7 +31,7 @@ class Propagator():
     '''
     
 
-    def __init__(self, central_body='Earth', perturbations=[]):
+    def __init__(self, central_body='EARTH', perturbations=[]):
         '''
         Creates propagator object with given parameters
 
@@ -43,7 +44,8 @@ class Propagator():
             list of perturbations used in the EOM
 
         '''
-        
+        self.bodies = [] 
+        self.frame = "J2000"
         self.central_body = central_body
         self.perturbations = perturbations
         self.solver = ode(self.EOM) 
@@ -102,7 +104,6 @@ class Propagator():
         y[0] = y0
         
         self.solver.set_initial_value(y[0],t[0])
-        
         i = 1
         stop = False
         if 'low_thrust' in self.perturbations:
@@ -154,10 +155,16 @@ class Propagator():
         r_mag = np.linalg.norm(pos)
         v_mag = np.linalg.norm(vel)
         acc = -pos * bodies[self.central_body]["mu"] / pow(r_mag,3)
-
         if 'low_thrust' in self.perturbations:
             acc_lt = self.thrust * (vel / v_mag)
             acc += acc_lt
+
+        for body in self.bodies:
+            r_body = tb.ephemeris_getter(body,t,self.frame,self.central_body)[0:3]
+            r_body_sc = pos - r_body
+            r_body_sc_mag = np.linalg.norm(r_body_sc)
+            acc += -r_body_sc * (bodies[body]["mu"] / pow(r_body_sc_mag,3))
+
 
         return [vel[0], vel[1], vel[2], acc[0], acc[1], acc[2]]
         

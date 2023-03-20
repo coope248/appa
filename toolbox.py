@@ -1,6 +1,6 @@
 import numpy as np
 import math
-
+import spiceypy as spice
 
 def kep2state(sma = 6800, ecc = 0, inc = 0, aop = 0, raan = 0, ta = 0, mu =398600.4):
     #calculate r and v at a given keplerian parameters
@@ -123,3 +123,49 @@ def rth2eci(raan=0, inc=0, aol=0):
 
     return np.array([x,y,z])
 
+
+def spice_object_getter(file, printopt=False):
+    objects = spice.spkobj(file)
+    ids,names,tcs_s,tcs_pretty = [],[],[],[]
+
+    if printopt:
+        print("Objects retrived from {}".format(file))
+
+    n=0 
+    for obj in objects:
+        ids.append(obj)
+    
+        tc_s = spice.wnfetd(spice.spkcov(file,ids[n]),n)
+        tcs_s.append(tc_s)
+        tcs_pretty.append([spice.timout(f,"YYYY MON DD HR:MM:SC.### (TDB) ::TDB" ) for f in tc_s])
+
+        try:
+            name = spice.bodc2n(obj)
+        except:
+            name = "UNKOWN"
+
+        names.append(name)
+
+        if printopt:
+            print("ID: {0:3}\t\tName: {1:35}\tTime Cov: {2} --> {3}".format(ids[-1],names[-1],tcs_pretty[-1][0],tcs_pretty[-1][1]))
+
+        
+
+    return ids,names,tcs_s,tcs_pretty
+
+def ephemeris_getter(target,times,frame,observer):
+    return np.array(spice.spkezr(target,times,frame,'NONE',observer)[0])
+
+def tc_array(tcs,n_steps):
+    arr = np.zeros((n_steps,1))
+    arr[:,0] = np.linspace(tcs[0],tcs[1],n_steps)
+    return arr
+    
+def load_ephemeris():
+    spice.furnsh('spice_data/ss_kernel.mk')
+    ids,names,tcs_s,tcs_pr = spice_object_getter('spice_data/de432s.bsp',True)
+    
+
+
+    
+    
