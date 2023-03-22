@@ -143,7 +143,10 @@ class Spacecraft():
 
         show : Bool, optional
             determines whether or not to show resulting figure after trajectory is added
+
         '''
+        
+        bound_current = fig.data[0].x[-1]
         fig.add_trace(go.Scatter3d(x = self.ys[:,0],
                                  y = self.ys[:,1],
                                  z = self.ys[:,2],
@@ -155,6 +158,8 @@ class Spacecraft():
                                    ))
 
         bound = np.absolute(self.ys).max() + 500
+        if bound_current > bound:
+            bound = bound_current
         xMax = [-bound,-bound,-bound,-bound,bound,bound,bound,bound]
         yMax = [-bound,-bound,bound,bound,-bound,-bound,bound,bound]
         zMax = [-bound,bound,-bound,bound,-bound,bound,-bound,bound]

@@ -1,5 +1,8 @@
 import numpy as np
 import math
+
+import plotly.graph_objects as go
+import plotly.express as px
 import spiceypy as spice
 
 def kep2state(sma = 6800, ecc = 0, inc = 0, aop = 0, raan = 0, ta = 0, mu =398600.4):
@@ -164,8 +167,108 @@ def tc_array(tcs,n_steps):
 def load_ephemeris():
     spice.furnsh('spice_data/ss_kernel.mk')
     ids,names,tcs_s,tcs_pr = spice_object_getter('spice_data/de432s.bsp',True)
-    
 
 
+def plot_body(body,t, steps, frame="J2000",observer="EARTH", show=True):
+    '''
+    Plots all trajectory points in state arrays for spacecraft object
+
+    Parameters:
+    -----------
+    body : str 
+        body to plot
+    t : tuple
+        timespan to plot body (t0,tf)
+
+    frame : str, optional
+        frame to plot bodies trajectory defaults to J2000 frame
+
+    observer : str, optional
+        observer of trajectory (center of reference) defaults to EARTH
+
+    show : bool, optional
+        used to determine whether or not to show plot object after creating plotly figure object
+
+    Returns:
+    -------
+
+    fig : plotly figure object
+        plotly figure that can be manipulated and/or passed to add_plot method (see plotly documentation for more information)
+
+    bound : float
+        bounds of resulting plot figure
+    '''
     
+    ys = ephemeris_getter(body,tc_array(t,steps),frame,observer)
+    bound = np.absolute(ys).max() + 500
+    xMax = [-bound,-bound,-bound,-bound,bound,bound,bound,bound]
+    yMax = [-bound,-bound,bound,bound,-bound,-bound,bound,bound]
+    zMax = [-bound,bound,-bound,bound,-bound,bound,-bound,bound]
+    fig = go.Figure()
+    fig.add_trace(go.Scatter3d(x = xMax, 
+                               y = yMax, 
+                               z = zMax,
+                               mode = 'markers',
+                               marker=dict(
+                                   size=0.01,
+                                   opacity=0.01)))
+    fig.add_trace(go.Scatter3d(x=ys[:,0],
+                               y=ys[:,1],
+                               z=ys[:,2],
+                               mode='lines',))
+
+    if show:
+        fig.show()
+    return fig
     
+def add_body_plot(fig,body, t, steps, frame="J2000",observer="EARTH",show=True):
+
+    '''
+    Adds trajectory of spacecraft to an existing plotly figure
+        
+    Parameters:
+    -----------
+
+    fig : plotly figure
+        figure that trajectory plot is added to
+
+    body : str
+        body to add to figure
+
+    t : tuple
+        timespan to plot body (t0,tf)
+
+    frame : str, optional
+        frame to plot bodies trajectory defaults to J2000 frame
+
+    observer : str, optional
+        observer of trajectory (center of reference) defaults to EARTH
+
+    show : Bool, optional
+        determines whether or not to show resulting figure after trajectory is added
+
+    '''
+            
+    ys = ephemeris_getter(body,tc_array(t,steps),frame,observer)
+    bound_current = fig.data[0].x[-1]
+    fig.add_trace(go.Scatter3d(x = ys[:,0],
+                               y = ys[:,1],
+                               z = ys[:,2],
+                               mode = 'lines',
+                               line=dict(color='fuchsia',
+                                         width=2)))
+        
+    bound = np.absolute(ys).max() + 500
+    if bound_current > bound:
+        bound = bound_current
+    xMax = [-bound,-bound,-bound,-bound,bound,bound,bound,bound]
+    yMax = [-bound,-bound,bound,bound,-bound,-bound,bound,bound]
+    zMax = [-bound,bound,-bound,bound,-bound,bound,-bound,bound]
+    fig.update_traces(x = xMax,
+                      y = yMax,
+                      z = zMax,
+                      selector=dict(type="scatter3d", mode="markers"))
+    if show:
+        fig.show()
+        
+

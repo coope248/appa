@@ -17,24 +17,34 @@ def max_epoch(t,state,max=20000):
 
 if __name__ == "__main__":
     tb.load_ephemeris()
+    fig = tb.plot_body("MERCURY BARYCENTER",(0,100000000),10000,"ECLIPJ2000","SUN",False)
+    tb.add_body_plot(fig,"VENUS BARYCENTER",(0,100000000),10000,"ECLIPJ2000","SUN",False)
+    tb.add_body_plot(fig,"EARTH BARYCENTER",(0,100000000),10000,"ECLIPJ2000","SUN",False)
+    tb.add_body_plot(fig,"MARS BARYCENTER",(0,100000000),10000,"ECLIPJ2000","SUN",False)
+    tb.add_body_plot(fig,"JUPITER BARYCENTER",(0,100000000),10000,"ECLIPJ2000","SUN",True)
     max_t_func = partial(max_epoch,max=13000)  # use partial functions and keyword args to create variable stop conditions (same function, multiple uses)
     
     moon0 = np.array(tb.ephemeris_getter("MOON",0,"J2000","EARTH"))
     t0=0
     y0 = [0,6378+450000,0,np.sqrt(earth_mu/(earth_radius+700000)),0,0]#spacecraft.y[-1]i
-    y0 = [moon0[0],moon0[1]+10000,moon0[2],moon0[3]+0.5,moon0[4],moon0[5]]
+    y0 = [moon0[0],moon0[1]+10000,moon0[2],moon0[3]-0.7,moon0[4],moon0[5]]
+    print(y0)
     r0=y0[0:3]
     v0=y0[3:6]
     
     sc = Spacecraft(t0,r0,v0)
     sc2 = Spacecraft(t0,r0,v0)
     prop = Propagator()
-    sc.propagate(prop,5000000,100)
     prop.bodies = ['MOON']
-    sc2.propagate(prop,5000000,100)
+    sc.propagate(prop,500000,100)
+    prop.bodies = []
+    sc2.propagate(prop,500000,100)
 
-    fig = sc.plot(show=False)
-    sc2.add_plot(fig,show=True)
+    fig2 = tb.plot_body("MOON",(0,2000000),1000,show=False)
+    sc.add_plot(fig2, show=False)
+    sc2.add_plot(fig2,show=True)
+
+
     #for i in range(5):
     #    sc.append(Spacecraft(t0,r0,v0))
     #    sc[i].propagate(prop, 10000, 10)
