@@ -70,6 +70,7 @@ if __name__ == "__main__":
         #scs[i].impulse_maneuver([i/25,0,0])
         scs[i].propagate(prop,scs[i].t+11000,100)
         scs[i].color = hsv_to_rgb(360 * i/N,1,1)
+        scs[i].name = "Spacecraft {}: (thrust = {})".format(i,scs[i].thrust)
 
     #for craft in scs:
     

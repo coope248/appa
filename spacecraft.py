@@ -64,6 +64,7 @@ class Spacecraft():
         self.ys = np.array([r0+v0])
         self.thrust = 0
         self.color = (0,0,0)
+        self.name = None
 
     def propagate(self, propagator, tf, dt, stop_cond=None):
         '''
@@ -93,7 +94,7 @@ class Spacecraft():
         self.y = y[-1]
 
 
-    def plot(self, show=True, color=None):
+    def plot(self, show=True, name=None, color=None):
         '''
         Plots all trajectory points in state arrays for spacecraft object
 
@@ -112,6 +113,8 @@ class Spacecraft():
         '''
         if color == None:
             color = self.color
+        if name == None:
+            name = self.name
         bound = np.absolute(self.ys).max() + 500
         xMax = [-bound,-bound,-bound,-bound,bound,bound,bound,bound]
         yMax = [-bound,-bound,bound,bound,-bound,-bound,bound,bound]
@@ -130,6 +133,7 @@ class Spacecraft():
             y=self.ys[:,1],
             z=self.ys[:,2],
                 mode='lines',
+                name = name,
                 line=dict(color="rgb{}".format(color),
                           width=2)))
 
@@ -137,7 +141,7 @@ class Spacecraft():
             fig.show()
         return fig
 
-    def add_plot(self, fig, show=True, color=None):
+    def add_plot(self, fig, show=True, name=None, color=None):
         '''
         Adds trajectory of spacecraft to an existing plotly figure
 
@@ -154,11 +158,14 @@ class Spacecraft():
         
         if color == None:
             color = self.color
+        if name == None:
+            name = self.name
         bound_current = fig.data[0].x[-1]
         fig.add_trace(go.Scatter3d(x = self.ys[:,0],
                                  y = self.ys[:,1],
                                  z = self.ys[:,2],
                                    mode = 'lines',
+                                   name=name,
                                    line=dict(color="rgb{}".format(color),
                                              width=2)))
 
