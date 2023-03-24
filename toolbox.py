@@ -209,6 +209,7 @@ def plot_body(body,t, steps, frame="J2000",observer="EARTH", show=True):
                                y = yMax, 
                                z = zMax,
                                mode = 'markers',
+                               showlegend=False,
                                marker=dict(
                                    size=0.01,
                                    opacity=0.01)))
@@ -271,4 +272,7 @@ def add_body_plot(fig,body, t, steps, frame="J2000",observer="EARTH",show=True):
     if show:
         fig.show()
         
+
+
+
 

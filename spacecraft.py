@@ -63,6 +63,7 @@ class Spacecraft():
         self.ts = np.array([t0])
         self.ys = np.array([r0+v0])
         self.thrust = 0
+        self.color = (0,0,0)
 
     def propagate(self, propagator, tf, dt, stop_cond=None):
         '''
@@ -92,7 +93,7 @@ class Spacecraft():
         self.y = y[-1]
 
 
-    def plot(self, show=True):
+    def plot(self, show=True, color=None):
         '''
         Plots all trajectory points in state arrays for spacecraft object
 
@@ -109,6 +110,8 @@ class Spacecraft():
             plotly figure that can be manipulated and/or passed to add_plot method (see plotly documentation for more information)
 
         '''
+        if color == None:
+            color = self.color
         bound = np.absolute(self.ys).max() + 500
         xMax = [-bound,-bound,-bound,-bound,bound,bound,bound,bound]
         yMax = [-bound,-bound,bound,bound,-bound,-bound,bound,bound]
@@ -117,6 +120,7 @@ class Spacecraft():
         fig.add_trace(go.Scatter3d(x = xMax, 
                          y = yMax, 
                          z = zMax,
+                        showlegend=False,
                         mode = 'markers',
                         marker=dict(
                             size=0.01,
@@ -125,13 +129,15 @@ class Spacecraft():
             x=self.ys[:,0],
             y=self.ys[:,1],
             z=self.ys[:,2],
-                mode='lines',))
+                mode='lines',
+                line=dict(color="rgb{}".format(color),
+                          width=2)))
 
         if show:
             fig.show()
         return fig
 
-    def add_plot(self, fig, show=True):
+    def add_plot(self, fig, show=True, color=None):
         '''
         Adds trajectory of spacecraft to an existing plotly figure
 
@@ -146,16 +152,15 @@ class Spacecraft():
 
         '''
         
+        if color == None:
+            color = self.color
         bound_current = fig.data[0].x[-1]
         fig.add_trace(go.Scatter3d(x = self.ys[:,0],
                                  y = self.ys[:,1],
                                  z = self.ys[:,2],
                                    mode = 'lines',
-                                   line=dict(
-                                            color='darkblue',
-                                            width=2
-                                            )   
-                                   ))
+                                   line=dict(color="rgb{}".format(color),
+                                             width=2)))
 
         bound = np.absolute(self.ys).max() + 500
         if bound_current > bound:
