@@ -3,6 +3,7 @@ from propagator import Propagator
 from spacecraft import Spacecraft
 from functools import partial
 import plotly.express as px
+import plotly.graph_objects as go
 
 import numpy as np
 
@@ -15,6 +16,10 @@ def max_epoch(t,state,max=20000):
     return t>max
 
 def hsv_to_rgb(h, s, v):
+    '''
+    function to convert hsv color space to rgb color space
+    '''
+
     h /= 360
     if s == 0.0: v*=255; return (v, v, v)
     i = int(h*6.) # XXX assume int() truncates!
@@ -27,21 +32,21 @@ def hsv_to_rgb(h, s, v):
     if i == 5: return (v, p, q)
 
 if __name__ == "__main__":
+
+    #Example plotting celestial bodies using toolbox functions
     tb.load_ephemeris()
-    fig = tb.plot_body("MERCURY BARYCENTER",(0,100000000),10000,"ECLIPJ2000","SUN",False)
-    tb.add_body_plot(fig,"VENUS BARYCENTER",(0,100000000),10000,"ECLIPJ2000","SUN",False)
-    tb.add_body_plot(fig,"EARTH BARYCENTER",(0,100000000),10000,"ECLIPJ2000","SUN",False)
-    tb.add_body_plot(fig,"MARS BARYCENTER",(0,100000000),10000,"ECLIPJ2000","SUN",False)
-    tb.add_body_plot(fig,"JUPITER BARYCENTER",(0,100000000),10000,"ECLIPJ2000","SUN",False)
-    tb.add_body_plot(fig,"PLUTO BARYCENTER",(0,100000000),10000,"ECLIPJ2000","SUN",False)
+    fig = tb.plot_body("MERCURY BARYCENTER",(0,100000000),10000,"ECLIPJ2000","SUN",False,(150,150,150))
+    tb.add_body_plot(fig,"VENUS BARYCENTER",(0,100000000),10000,"ECLIPJ2000","SUN",False,(181,109,58))
+    tb.add_body_plot(fig,"EARTH BARYCENTER",(0,100000000),10000,"ECLIPJ2000","SUN",False,(0,0,255))
+    tb.add_body_plot(fig,"MARS BARYCENTER",(0,100000000),10000,"ECLIPJ2000","SUN",False,(255,0,0))
     fig.show()
-    max_t_func = partial(max_epoch,max=13000)  # use partial functions and keyword args to create variable stop conditions (same function, multiple uses)
+    #max_t_func = partial(max_epoch,max=13000)  # use partial functions and keyword args to create variable stop conditions (same function, multiple uses)
     
+    #Example plotting near-moon trajectories with and without moon's gravity (also plotting moon)
     moon0 = np.array(tb.ephemeris_getter("MOON",0,"J2000","EARTH"))
     t0=0
     y0 = [0,6378+450000,0,np.sqrt(earth_mu/(earth_radius+700000)),0,0]#spacecraft.y[-1]i
     y0 = [moon0[0],moon0[1]+10000,moon0[2],moon0[3]-0.7,moon0[4],moon0[5]]
-    print(y0)
     r0=y0[0:3]
     v0=y0[3:6]
     
@@ -57,11 +62,13 @@ if __name__ == "__main__":
     sc.add_plot(fig2, show=False)
     sc2.add_plot(fig2,show=True)
 
+
+    #Example plotting many spacecraft with variations and plotting keplerian parameters(as well as using low thrust perturbation)
     scs = []
     y0 = [0,6378+500,0,np.sqrt(earth_mu/(earth_radius+500)),0,0]#spacecraft.y[-1]i
     r0=y0[0:3]
     v0=y0[3:6]
-    N = 10
+    N = 20
     for i in range(N):
         scs.append(Spacecraft(t0,r0,v0))
         scs[i].propagate(prop, 10000, 100)
@@ -72,15 +79,14 @@ if __name__ == "__main__":
         scs[i].color = hsv_to_rgb(360 * i/N,1,1)
         scs[i].name = "Spacecraft {}: (thrust = {})".format(i,scs[i].thrust)
 
-    #for craft in scs:
-    
-    #    keps = [tb.state2kep(state) for state in craft.ys]
-    #    es = [kep['ecc'] for kep in keps]
+    kepfig = go.Figure(layout_title_text="Semi-major axis")
+    for craft in scs:
+        keps = [tb.state2kep(state) for state in craft.ys]
+        es = [kep['sma'] for kep in keps]
 
-    #    eFig = px.line(x=craft.ts,y=es)
-    #    eFig.show()
+        kepfig.add_scatter(x=craft.ts,y=es,name=craft.name,line=dict(color="rgb{}".format(craft.color)))
         
-
+    kepfig.show()
 
     fig3 = scs[0].plot(show=False)
 

@@ -40,6 +40,7 @@ def modkep2state(ra=6800, rp=6800, inc=0, aop=0, raan=0, ta=0, mu=398600.4):
 
 def state2kep(state, mu=398600.4):
     #calculate keplerian parameters from pos and vel (including C3, r_p, r_a, fpa)
+    #should check for hyperbolic orbit
     x,y,z,vx,vy,vz = state
     r = np.linalg.norm([x,y,z])
     r_hat = np.array([x,y,z])/r
@@ -169,7 +170,7 @@ def load_ephemeris():
     ids,names,tcs_s,tcs_pr = spice_object_getter('spice_data/de432s.bsp',True)
 
 
-def plot_body(body,t, steps, frame="J2000",observer="EARTH", show=True):
+def plot_body(body,t, steps, frame="J2000",observer="EARTH", show=True, color=None):
     '''
     Plots all trajectory points in state arrays for spacecraft object
 
@@ -199,6 +200,9 @@ def plot_body(body,t, steps, frame="J2000",observer="EARTH", show=True):
         bounds of resulting plot figure
     '''
     
+    if color == None:
+        color = (0,0,0)
+
     ys = ephemeris_getter(body,tc_array(t,steps),frame,observer)
     bound = np.absolute(ys).max() + 500
     xMax = [-bound,-bound,-bound,-bound,bound,bound,bound,bound]
@@ -216,13 +220,15 @@ def plot_body(body,t, steps, frame="J2000",observer="EARTH", show=True):
     fig.add_trace(go.Scatter3d(x=ys[:,0],
                                y=ys[:,1],
                                z=ys[:,2],
-                               mode='lines',))
+                               mode='lines',
+                               line=dict(color="rgb{}".format(color),
+                                         width=2)))
 
     if show:
         fig.show()
     return fig
     
-def add_body_plot(fig,body, t, steps, frame="J2000",observer="EARTH",show=True):
+def add_body_plot(fig,body, t, steps, frame="J2000",observer="EARTH",show=True,color=None):
 
     '''
     Adds trajectory of spacecraft to an existing plotly figure
@@ -249,14 +255,17 @@ def add_body_plot(fig,body, t, steps, frame="J2000",observer="EARTH",show=True):
         determines whether or not to show resulting figure after trajectory is added
 
     '''
-            
+    
+    if color == None:
+        color = (0,0,0)
+
     ys = ephemeris_getter(body,tc_array(t,steps),frame,observer)
     bound_current = fig.data[0].x[-1]
     fig.add_trace(go.Scatter3d(x = ys[:,0],
                                y = ys[:,1],
                                z = ys[:,2],
                                mode = 'lines',
-                               line=dict(color='fuchsia',
+                               line=dict(color="rgb{}".format(color),
                                          width=2)))
         
     bound = np.absolute(ys).max() + 500

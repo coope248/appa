@@ -23,6 +23,10 @@ class Spacecraft():
         array of all states corresponding to times in ts
     thrust : float
         engine thrust of craft (used for finite burn calculations)
+    color : tuple
+        Tuple containing RGB values used for plot color
+    name : str
+        name of spacecraft mainly useful for plot legend
 
 
     Methods
@@ -104,6 +108,12 @@ class Spacecraft():
         show : bool, optional
             used to determine whether or not to show plot object after creating plotly figure object
 
+        name : str, optional
+            name used in legend, defaults to name of spacecraft if there is one
+
+        color : tuple, optional
+            tuple containing RGB color values to use for line plot
+
         Returns:
         -------
 
@@ -153,6 +163,12 @@ class Spacecraft():
 
         show : Bool, optional
             determines whether or not to show resulting figure after trajectory is added
+        
+        name : str, optional
+            name used in legend, defaults to name of spacecraft if there is one
+
+        color : tuple, optional
+            tuple containing RGB color values to use for line plot
 
         '''
         
