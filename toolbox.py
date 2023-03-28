@@ -6,9 +6,36 @@ import plotly.express as px
 import spiceypy as spice
 
 def kep2state(sma = 6800, ecc = 0, inc = 0, aop = 0, raan = 0, ta = 0, mu =398600.4):
-    #calculate r and v at a given keplerian parameters
-    # TODO: checks for hyperbolic orbit
+    '''
+    Function to calculate state vector (r and v) at given keplerian parameters
 
+    Parameters:
+    -----------
+
+    sma : float, optional
+        semi major axis of keplerian orbit
+    ecc : float, optional
+        eccentricity of keplerian orbit
+    inc : float, optional
+        inclination of orbit
+    aop : float, optional
+        argument of periapsis
+    raan : float, optional
+        right ascension of the ascending node
+    ta : float, optional
+        true anomoly of object in radians
+    mu : float, optional
+        gravitational parameter of central body for keplerian orbit
+
+    Returns:
+    --------
+
+    state : array
+        state vector in form of [x, y, z, vx, vy, vz] corresponding to same orbit and position that is input
+
+    '''
+
+    #TODO: checks for hyperbolic orbit
     aol = ta+aop
     slr = sma * (1 - ecc**2)
     c3 = -mu / (2*sma)
@@ -33,14 +60,79 @@ def kep2state(sma = 6800, ecc = 0, inc = 0, aop = 0, raan = 0, ta = 0, mu =39860
 
 
 def modkep2state(ra=6800, rp=6800, inc=0, aop=0, raan=0, ta=0, mu=398600.4):
-    #calculate r and v with given modified keplerian parameters
+    '''
+    Function to calculate state vector (r and v) at given modified keplerian parameters (based on GMAT modified keplerian option)
+
+    Parameters:
+    -----------
+
+    ra : float, optional
+        distance at apoapsis of orbit
+    rp : float, optional
+        distance at periapsis of orbit
+    inc : float, optional
+        inclination of orbit
+    aop : float, optional
+        argument of periapsis
+    raan : float, optional
+        right ascension of the ascending node
+    ta : float, optional
+        true anomoly of object in radians
+    mu : float, optional
+        gravitational parameter of central body for keplerian orbit
+
+    Returns:
+    --------
+
+    state : array
+        state vector in form of [x, y, z, vx, vy, vz] corresponding to same orbit and position that is input
+    '''
     sma = (r_per+r_apo)/2
     ecc = (r_apo/sma) - 1
     return kep2state(sma, ecc, inc, aop, raan, ta, mu)
 
-def state2kep(state, mu=398600.4):
-    #calculate keplerian parameters from pos and vel (including C3, r_p, r_a, fpa)
-    #should check for hyperbolic orbit
+def state2kep(state, mu=398600.4):i
+    '''
+    calculates orbital parameters given the current state vector
+
+    Parameters: 
+    -----------
+
+    state : array
+        state vector in form of [x, y, z, vx, vy, vz] corresponding to same orbit and position that is input
+    mu : float, optional 
+        gravitational parameter of central body for keplerian orbit
+
+    Returns:
+    --------
+
+    param_dict : dictionary
+        dictionary of orbital parameters
+        
+    Available orbital parameters:
+    -----------------------------
+    
+    ra : float
+        distance at apoapsis of orbit
+    rp : float
+        distance at periapsis of orbit
+    inc : float
+        inclination of orbit
+    aop : float
+        argument of periapsis
+    raan : float
+        right ascension of the ascending node
+    ta : float
+        true anomoly of object in radians
+    c3 : float
+    fpa : float
+    rp : float
+    ra : float
+    vp : float
+    va : float
+        
+
+    '''
     x,y,z,vx,vy,vz = state
     r = np.linalg.norm([x,y,z])
     r_hat = np.array([x,y,z])/r
@@ -69,7 +161,7 @@ def state2kep(state, mu=398600.4):
     if np.dot(v_hat,r_hat) < 0:
         ta = 2*np.pi - np.arccos(np.dot(r_hat,e_hat))
     else:
-        ta = np.arccos(np.dot(r_hat,e_hat))
+        ta = np.arccos(max(-1,min(1,np.dot(r_hat,e_hat))))
 
     inc = np.arccos(h_hat[2])
     
@@ -96,7 +188,7 @@ def state2kep(state, mu=398600.4):
     
     va_mag = np.sqrt((1-ecc) * (mu/ra))
     
-    dict = {'sma':sma,
+    param_dict = {'sma':sma,
             'ecc':ecc,
             'inc':inc,
             'aop':aop,
@@ -110,7 +202,7 @@ def state2kep(state, mu=398600.4):
             'va':va_mag,
             }
 
-    return dict
+    return param_dict
     
 
 

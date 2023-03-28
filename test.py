@@ -68,7 +68,7 @@ if __name__ == "__main__":
     y0 = [0,6378+500,0,np.sqrt(earth_mu/(earth_radius+500)),0,0]#spacecraft.y[-1]i
     r0=y0[0:3]
     v0=y0[3:6]
-    N = 20
+    N = 50
     for i in range(N):
         scs.append(Spacecraft(t0,r0,v0))
         scs[i].propagate(prop, 10000, 100)
@@ -77,12 +77,12 @@ if __name__ == "__main__":
         #scs[i].impulse_maneuver([i/25,0,0])
         scs[i].propagate(prop,scs[i].t+11000,100)
         scs[i].color = hsv_to_rgb(360 * i/N,1,1)
-        scs[i].name = "Spacecraft {}: (thrust = {})".format(i,scs[i].thrust)
+        scs[i].name = "Spacecraft {0}: (thrust = {1:.5f})".format(i,scs[i].thrust)
 
-    kepfig = go.Figure(layout_title_text="Semi-major axis")
+    kepfig = go.Figure(layout_title_text="Orbital Energy")
     for craft in scs:
         keps = [tb.state2kep(state) for state in craft.ys]
-        es = [kep['sma'] for kep in keps]
+        es = [kep['c3'] for kep in keps]
 
         kepfig.add_scatter(x=craft.ts,y=es,name=craft.name,line=dict(color="rgb{}".format(craft.color)))
         
