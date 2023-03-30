@@ -1,4 +1,4 @@
-import toolbox as tb
+
 from propagator import Propagator
 from spacecraft import Spacecraft
 from functools import partial
@@ -7,6 +7,8 @@ import plotly.graph_objects as go
 
 import numpy as np
 
+import toolbox as tb
+import stop_conditions as sc
 from solarsystem import bodies
 
 earth_radius = bodies["EARTH"]["radius"]
@@ -40,7 +42,7 @@ if __name__ == "__main__":
     tb.add_body_plot(fig,"EARTH BARYCENTER",(0,100000000),10000,"ECLIPJ2000","SUN",False,(0,0,255))
     tb.add_body_plot(fig,"MARS BARYCENTER",(0,100000000),10000,"ECLIPJ2000","SUN",False,(255,0,0))
     fig.show()
-    #max_t_func = partial(max_epoch,max=13000)  # use partial functions and keyword args to create variable stop conditions (same function, multiple uses)
+    max_c3_func = partial(sc.kepler_stop,params='c3',max_val=-10)  # use partial functions and keyword args to create variable stop conditions (same function, multiple uses)
     
     #Example plotting near-moon trajectories with and without moon's gravity (also plotting moon)
     moon0 = np.array(tb.ephemeris_getter("MOON",0,"J2000","EARTH"))
@@ -75,7 +77,7 @@ if __name__ == "__main__":
         prop.add_perturbation('low_thrust')
         scs[i].thrust = 0.00001*(i+1)
         #scs[i].impulse_maneuver([i/25,0,0])
-        scs[i].propagate(prop,scs[i].t+11000,100)
+        scs[i].propagate(prop,scs[i].t+11000,10,stop_cond=[max_c3_func])
         scs[i].color = hsv_to_rgb(360 * i/N,1,1)
         scs[i].name = "Spacecraft {0}: (thrust = {1:.5f})".format(i,scs[i].thrust)
 

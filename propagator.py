@@ -126,7 +126,6 @@ class Propagator():
                 
             t =  t[0:first_zero]
             y = y[~np.all(y==0,axis=1)]
-            print(t.shape,y.shape)
         return t,y
 
 

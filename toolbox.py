@@ -91,7 +91,7 @@ def modkep2state(ra=6800, rp=6800, inc=0, aop=0, raan=0, ta=0, mu=398600.4):
     ecc = (r_apo/sma) - 1
     return kep2state(sma, ecc, inc, aop, raan, ta, mu)
 
-def state2kep(state, mu=398600.4):i
+def state2kep(state, mu=398600.4):
     '''
     calculates orbital parameters given the current state vector
 
