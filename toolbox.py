@@ -260,6 +260,7 @@ def tc_array(tcs,n_steps):
 def load_ephemeris():
     spice.furnsh('spice_data/ss_kernel.mk')
     ids,names,tcs_s,tcs_pr = spice_object_getter('spice_data/de432s.bsp',True)
+    return ids,names,tcs_s,tcs_pr
 
 
 def plot_body(body,t, steps, frame="J2000",observer="EARTH", show=True, color=None):
