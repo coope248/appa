@@ -98,8 +98,8 @@ class Propagator():
         t0 = spacecraft.t
         y0 = spacecraft.y
         steps = np.ceil((tf-t0)/dt)
-        t = np.zeros((int(steps),1))
-        y = np.zeros((int(steps),6))
+        t = np.zeros((int(steps+1),1))
+        y = np.zeros((int(steps+1),6))
         t[0] = t0
         y[0] = y0
         
@@ -108,7 +108,7 @@ class Propagator():
         stop = False
         if 'low_thrust' in self.perturbations:
             self.thrust = spacecraft.thrust
-        while (self.solver.successful()) and (i < steps) and (not stop):
+        while (self.solver.successful()) and (i <= steps) and (not stop):
             self.solver.integrate(self.solver.t+dt)
             t[i] = self.solver.t
             y[i] = self.solver.y
