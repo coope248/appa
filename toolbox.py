@@ -43,7 +43,7 @@ def kep2state(sma = 6800, ecc = 0, inc = 0, aop = 0, raan = 0, ta = 0, mu =39860
 
     r = slr / (1 + ecc * math.cos(ta))
     v = math.sqrt(2 * (c3 + mu/r))
-    fpa = np.arccos( h / (r * v))
+    fpa = np.arccos( max(-1,min(1,h / (r * v))))
 
     if ta > np.pi:
         fpa *= -1
