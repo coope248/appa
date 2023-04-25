@@ -1,9 +1,13 @@
 import numpy as np
 import math
+import os
 
 import plotly.graph_objects as go
 import plotly.express as px
 import spiceypy as spice
+from spice_data.create_mk import create_mk
+
+SPICE_PATH = os.path.join(os.path.dirname(__file__),"spice_data")
 
 def kep2state(sma = 6800, ecc = 0, inc = 0, aop = 0, raan = 0, ta = 0, mu =398600.4):
     '''
@@ -258,8 +262,9 @@ def tc_array(tcs,n_steps):
     return arr
     
 def load_ephemeris():
-    spice.furnsh('spice_data/ss_kernel.mk')
-    ids,names,tcs_s,tcs_pr = spice_object_getter('spice_data/de432s.bsp',True)
+    create_mk()
+    spice.furnsh(os.path.join(SPICE_PATH,"ss_kernel.mk"))
+    ids,names,tcs_s,tcs_pr = spice_object_getter(os.path.join(SPICE_PATH,"de432s.bsp"),True)
     return ids,names,tcs_s,tcs_pr
 
 
