@@ -1,8 +1,8 @@
 import numpy as np
 from scipy.integrate import ode
 
-from solarsystem import bodies
-import toolbox as tb
+from .solarsystem import bodies
+import pyOrbit.toolbox as tb
 
 class Propagator():
     '''

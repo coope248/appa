@@ -5,9 +5,31 @@ import os
 import plotly.graph_objects as go
 import plotly.express as px
 import spiceypy as spice
-from spice_data.create_mk import create_mk
 
 SPICE_PATH = os.path.join(os.path.dirname(__file__),"spice_data")
+
+def create_mk():
+    tls_file = "latest_leapseconds.tls"
+    bsp_file = "de432s.bsp"
+    mk_file = "ss_kernel.mk"
+
+    if not os.path.exists(os.path.join(SPICE_PATH,mk_file)):
+        with open(os.path.join(SPICE_PATH,mk_file),'x') as f:
+            kernel1 = os.path.join(SPICE_PATH,tls_file)
+            kernel2 = os.path.join(SPICE_PATH,bsp_file)
+            if len(kernel1) > 50:
+                new_k = ""
+                for i in range(math.floor(len(kernel1)/50)):
+                    new_k += kernel1[i*50:(i+1)*50]+"+',\n'"
+                new_k += kernel1[50*math.floor(len(kernel1)/50):]
+                kernel1 = new_k
+            if len(kernel2) > 50:
+                new_k = ""
+                for i in range(math.floor(len(kernel2)/50)):
+                    new_k += kernel2[i*50:(i+1)*50]+"+',\n'"
+                new_k += kernel2[50*math.floor(len(kernel2)/50):]
+                kernel2 = new_k
+            f.write("\\begindata\n\nKERNELS_TO_LOAD=(\n'"+kernel1+"',\n'"+kernel2+"'\n)\n\n\\begintext")
 
 def kep2state(sma = 6800, ecc = 0, inc = 0, aop = 0, raan = 0, ta = 0, mu =398600.4):
     '''
@@ -297,7 +319,8 @@ def plot_body(body,t, steps, frame="J2000",observer="EARTH", show=True, color=No
     bound : float
         bounds of resulting plot figure
     '''
-    
+
+    load_ephemeris()
     if color == None:
         color = (0,0,0)
 
