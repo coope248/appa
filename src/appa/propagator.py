@@ -2,7 +2,7 @@ import numpy as np
 from scipy.integrate import ode
 
 from .solarsystem import bodies
-import pyOrbit.toolbox as tb
+import appa.toolbox as tb
 
 class Propagator():
     '''

@@ -1,5 +1,5 @@
 import numpy as np
-import pyOrbit.toolbox as tb
+import appa.toolbox as tb
 
 
 def radius_stop(t, state, max_val=None, min_val=None, equals_val=None, accuracy=1):
