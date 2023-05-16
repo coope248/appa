@@ -320,7 +320,6 @@ def plot_body(body,t, steps, frame="J2000",observer="EARTH", show=True, color=No
         bounds of resulting plot figure
     '''
 
-    load_ephemeris()
     if color == None:
         color = (0,0,0)
 
@@ -342,6 +341,7 @@ def plot_body(body,t, steps, frame="J2000",observer="EARTH", show=True, color=No
                                y=ys[:,1],
                                z=ys[:,2],
                                mode='lines',
+                               name = body,
                                line=dict(color="rgb{}".format(color),
                                          width=2)))
 
@@ -386,6 +386,7 @@ def add_body_plot(fig,body, t, steps, frame="J2000",observer="EARTH",show=True,c
                                y = ys[:,1],
                                z = ys[:,2],
                                mode = 'lines',
+                               name = body,
                                line=dict(color="rgb{}".format(color),
                                          width=2)))
         

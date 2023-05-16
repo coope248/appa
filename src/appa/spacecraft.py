@@ -130,22 +130,26 @@ class Spacecraft():
         yMax = [-bound,-bound,bound,bound,-bound,-bound,bound,bound]
         zMax = [-bound,bound,-bound,bound,-bound,bound,-bound,bound]
         fig = go.Figure()
-        fig.add_trace(go.Scatter3d(x = xMax, 
-                         y = yMax, 
-                         z = zMax,
-                        showlegend=False,
-                        mode = 'markers',
-                        marker=dict(
-                            size=0.01,
-                            opacity=0.01)))
+        fig.add_trace(go.Scatter3d(
+            x = xMax, 
+            y = yMax, 
+            z = zMax,
+            showlegend=False,
+            mode = 'markers',
+            marker=dict(
+                size=0.01,
+                opacity=0.01)))
         fig.add_trace(go.Scatter3d(
             x=self.ys[:,0],
             y=self.ys[:,1],
             z=self.ys[:,2],
-                mode='lines',
-                name = name,
-                line=dict(color="rgb{}".format(color),
-                          width=2)))
+            customdata=self.ts,
+            mode='lines',
+            name = name,
+            line=dict(
+                color="rgb{}".format(color),
+                width=2)
+            hovertemplate='<br>x:%{x}<br>y:%{y}<br>z:%{z}<br>t:%{customdata}'))
 
         if show:
             fig.show()
@@ -177,13 +181,17 @@ class Spacecraft():
         if name == None:
             name = self.name
         bound_current = fig.data[0].x[-1]
-        fig.add_trace(go.Scatter3d(x = self.ys[:,0],
-                                 y = self.ys[:,1],
-                                 z = self.ys[:,2],
-                                   mode = 'lines',
-                                   name=name,
-                                   line=dict(color="rgb{}".format(color),
-                                             width=2)))
+        fig.add_trace(go.Scatter3d(
+            x = self.ys[:,0],
+            y = self.ys[:,1],
+            z = self.ys[:,2],
+            customdata = self.ts,
+            mode = 'lines',
+            name=name,
+            line=dict(
+                color="rgb{}".format(color),
+                width=2)
+            hovertemplate='<br>x:%{x}<br>y:%{y}<br>z:%{z}<br>t:%{customdata}'))
 
         bound = np.absolute(self.ys).max() + 500
         if bound_current > bound:
