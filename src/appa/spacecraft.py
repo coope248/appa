@@ -148,7 +148,7 @@ class Spacecraft():
             name = name,
             line=dict(
                 color="rgb{}".format(color),
-                width=2)
+                width=2),
             hovertemplate='<br>x:%{x}<br>y:%{y}<br>z:%{z}<br>t:%{customdata}'))
 
         if show:
@@ -190,7 +190,7 @@ class Spacecraft():
             name=name,
             line=dict(
                 color="rgb{}".format(color),
-                width=2)
+                width=2),
             hovertemplate='<br>x:%{x}<br>y:%{y}<br>z:%{z}<br>t:%{customdata}'))
 
         bound = np.absolute(self.ys).max() + 500
