@@ -1,4 +1,5 @@
 import numpy as np
+import math
 
 import plotly.express as px
 import plotly.graph_objects as go
@@ -98,7 +99,7 @@ class Spacecraft():
         self.y = y[-1]
 
 
-    def plot(self, show=True, name=None, color=None):
+    def plot(self, show=True, name=None, color=None, cb_radius=False,cb_color=None):
         '''
         Plots all trajectory points in state arrays for spacecraft object
 
@@ -121,9 +122,11 @@ class Spacecraft():
             plotly figure that can be manipulated and/or passed to add_plot method (see plotly documentation for more information)
 
         '''
-        if color == None:
+        if color is None:
             color = self.color
-        if name == None:
+        if cb_color is None:
+            cb_color = (50,50,255)
+        if name is None:
             name = self.name
         bound = np.absolute(self.ys).max() + 500
         xMax = [-bound,-bound,-bound,-bound,bound,bound,bound,bound]
@@ -139,6 +142,25 @@ class Spacecraft():
             marker=dict(
                 size=0.01,
                 opacity=0.01)))
+        if bool(cb_radius):
+            sphere = create_sphere(cb_radius,0,0,0,25)
+            print(len(sphere[0]))
+            fig.add_trace(go.Surface(
+                x=sphere[0],
+                y=sphere[1],
+                z=sphere[2],
+                opacity=0.9, 
+                showscale=False,
+                colorscale=[[0,"rgb{}".format(cb_color)], [1,"rgb{}".format(cb_color)]],
+                name="central body",
+                showlegend=True))
+            #fig.add_trace(go.Mesh3d(
+             #   x=sphere[0],
+              #  y=sphere[1],
+               # z=sphere[3],
+            #    name="central body",
+            #    color="rgb{}".format(cb_color),
+             #   showlegend=False))
         fig.add_trace(go.Scatter3d(
             x=self.ys[:,0],
             y=self.ys[:,1],
@@ -148,7 +170,7 @@ class Spacecraft():
             name = name,
             line=dict(
                 color="rgb{}".format(color),
-                width=2),
+                width=3),
             hovertemplate='<br>x:%{x}<br>y:%{y}<br>z:%{z}<br>t:%{customdata}'))
 
         if show:
@@ -190,7 +212,7 @@ class Spacecraft():
             name=name,
             line=dict(
                 color="rgb{}".format(color),
-                width=2),
+                width=3),
             hovertemplate='<br>x:%{x}<br>y:%{y}<br>z:%{z}<br>t:%{customdata}'))
 
         bound = np.absolute(self.ys).max() + 500
@@ -234,3 +256,23 @@ class Spacecraft():
         #add delta V to current velocity
         self.y += np.insert(delta_v,[0,0,0],0)
     
+#def create_sphere(radius,cx,cy,cz,num_points):
+ #   a = []
+  #  b = []
+   # c = []
+
+   # phi_list = np.linspace(0,math.pi,num_points)
+   # theta_list = np.linspace(0,2*math.pi,num_points)
+   # for theta in theta_list:
+   #     for phi in phi_list:
+    #        a += [(cx + (radius*math.cos(theta)*math.sin(phi)))]
+     #       b += [(cy + (radius*math.sin(theta)*math.sin(phi)))]
+      #      z += [(cz + (radius*math.cos(phi)))]
+    #return [a,b,c]
+def create_sphere(radius, x,y,z,resolution=20):
+    """Return the coordinates for plotting a sphere centered at (x,y,z)"""
+    u, v = np.mgrid[0:2*np.pi:resolution*2j, 0:np.pi:resolution*1j]
+    X = radius * np.cos(u)*np.sin(v) + x
+    Y = radius * np.sin(u)*np.sin(v) + y
+    Z = radius * np.cos(v) + z
+    return (X, Y, Z)
