@@ -98,7 +98,7 @@ class Propagator():
         t0 = spacecraft.t
         y0 = spacecraft.y
         steps = np.ceil((tf-t0)/dt)
-        t = np.zeros((int(steps+1),1))
+        t = np.ones((int(steps+1),1))*t0
         y = np.zeros((int(steps+1),6))
         t[0] = t0
         y[0] = y0
@@ -108,6 +108,7 @@ class Propagator():
         stop = False
         if 'low_thrust' in self.perturbations:
             self.thrust = spacecraft.thrust
+            self.thrust_dim = np.size(self.thrust)
         while (self.solver.successful()) and (i <= steps) and (not stop):
             self.solver.integrate(self.solver.t+dt)
             t[i] = self.solver.t
@@ -117,8 +118,8 @@ class Propagator():
                 stop = True in [f(self.solver.t,self.solver.y) for f in stop_cond]
 
         # if stopped, remove unused array indices
-        if 0 in t[1:]:
-            indices = np.where(t==0)[0]
+        if t0 in t[1:]:
+            indices = np.where(t==t0)[0]
             if indices[0]==0:
                 first_zero = indices[1]
             else:
@@ -155,8 +156,20 @@ class Propagator():
         v_mag = np.linalg.norm(vel)
         acc = -pos * bodies[self.central_body]["mu"] / pow(r_mag,3)
         if 'low_thrust' in self.perturbations:
-            acc_lt = self.thrust * (vel / v_mag)
+            if  self.thrust_dim == 1:
+                acc_lt = self.thrust * (vel / v_mag)
+
+            elif self.thrust_dim == 3:
+                #convert VNB reference frame to inertial
+                v_hat = vel / np.linalg.norm(vel)
+                h = np.cross(pos,vel)
+                n_hat = h / np.linalg.norm(h)
+                b_hat = np.cross(v_hat,n_hat)
+
+                rot_mat = np.array([v_hat,n_hat,b_hat])
+                acc_lt = np.dot(self.thrust,rot_mat)
             acc += acc_lt
+    
 
         for body in self.bodies:
             r_body = tb.ephemeris_getter(body,t,self.frame,self.central_body)[0:3]
