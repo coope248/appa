@@ -402,8 +402,25 @@ def add_body_plot(fig,body, t, steps, frame="J2000",observer="EARTH",show=True,c
                       selector=dict(type="scatter3d", mode="markers"))
     if show:
         fig.show()
-        
+       
 
+
+def get_atmo(central_body,altitude):
+    if central_body != "EARTH":
+        raise Exception("Atmospheric drag only available for Earth currently")
+    height_vals = [50, 100, 200, 400, 600, 800, 1000]
+    density_vals = [1.0269e-3, 5.604e-7, 2.541e-10, 2.803e-12, 1.137e-13, 1.136e-14, 3.561e-15]
+    density_vals = [density*10**9 for density in density_vals]
+    index = -1
+    for i,height in enumerate(height_vals):
+        if altitude >= height:
+            index = i
+            break
+    if (index == -1) or (index == len(height_vals)-1):
+        return 0
+    else:
+        h_scale = -(height_vals[index+1]-height_vals[index])/math.log(density_vals[index+1]/density_vals[index])
+        return density_vals[index]*math.exp(-(altitude - height_vals[index])/h_scale)
 
 
 
