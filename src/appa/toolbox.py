@@ -62,6 +62,10 @@ def kep2state(sma = 6800, ecc = 0, inc = 0, aop = 0, raan = 0, ta = 0, mu =39860
     '''
 
     #TODO: checks for hyperbolic orbit
+
+    if ecc < 1:
+        ...
+
     aol = ta+aop
     slr = sma * (1 - ecc**2)
     c3 = -mu / (2*sma)
@@ -206,27 +210,41 @@ def state2kep(state, mu=398600.4):
         aop = 2*np.pi - np.arccos(np.dot(n_hat,e_hat))
     else: 
         aop = np.arccos(np.dot(n_hat,e_hat))
-    
-    rp = sma*(1-ecc)
-    ra = sma*(1+ecc)
 
-    vp_mag = np.sqrt((1+ecc) * (mu/rp))
+    rp = None
+    ra = None
+    va_mag = None
+    vp_mag = None
+    if ecc < 1:
+        delta = None
+        rp = sma*(1-ecc)
+        ra = sma*(1+ecc)
+
+        vp_mag = np.sqrt((1+ecc) * (mu/rp))
     
-    va_mag = np.sqrt((1-ecc) * (mu/ra))
+        va_mag = np.sqrt((1-ecc) * (mu/ra))
+    if ecc >1:
+        ra = np.inf
+        v_inf = np.sqrt(2*c3)
+        delta = 2 * np.arcsin(1/ecc)
+        rp = sma * (1 - ecc)
+        vp_mag = np.sqrt(2*(c3 + mu/rp))
     
     param_dict = {'sma':sma,
-            'ecc':ecc,
-            'inc':inc,
-            'aop':aop,
-            'raan':raan,
-            'ta':ta,
-            'c3':c3,
-            'fpa':fpa,
-            'rp':rp,
-            'ra':ra,
-            'vp':vp_mag,
-            'va':va_mag,
-            }
+                  'ecc':ecc,
+                  'inc':inc,
+                  'aop':aop,
+                  'raan':raan,
+                  'ta':ta,
+                  'c3':c3,
+                  'fpa':fpa,
+                  'rp':rp,
+                  'ra':ra,
+                  'v_inf':v_inf,
+                  'vp':vp_mag,
+                  'va':va_mag,
+                  'delta':delta,
+                  }
 
     return param_dict
     
