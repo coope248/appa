@@ -56,7 +56,7 @@ def kep2state(sma = 6800, ecc = 0, inc = 0, aop = 0, raan = 0, ta = 0, mu =39860
     Returns:
     --------
 
-    state : array
+    state : numpy array
         state vector in form of [x, y, z, vx, vy, vz] corresponding to same orbit and position that is input
 
     '''
@@ -73,7 +73,7 @@ def kep2state(sma = 6800, ecc = 0, inc = 0, aop = 0, raan = 0, ta = 0, mu =39860
 
     r = slr / (1 + ecc * math.cos(ta))
     v = math.sqrt(2 * (c3 + mu/r))
-    fpa = np.arccos( max(-1,min(1,h / (r * v))))
+    fpa = math.acos( max(-1,min(1,h / (r * v))))
 
     if ta > np.pi:
         fpa *= -1
@@ -86,7 +86,7 @@ def kep2state(sma = 6800, ecc = 0, inc = 0, aop = 0, raan = 0, ta = 0, mu =39860
     x,y,z = np.dot(rot_mat, r_rth)
     vx,vy,vz = np.dot(rot_mat, v_rth)
 
-    return [x,y,z,vx,vy,vz]
+    return np.array([x,y,z,vx,vy,vz])
 
 
 def modkep2state(ra=6800, rp=6800, inc=0, aop=0, raan=0, ta=0, mu=398600.4):
@@ -180,20 +180,20 @@ def state2kep(state, mu=398600.4):
 
     slr = h_mag**2 / mu
     sma = -mu / (2*c3)
-    ecc = np.sqrt(1 - (slr/sma))
+    ecc = math.sqrt(1 - (slr/sma))
     e_vec = np.cross(v_vec,h)/mu - r_hat
     if ecc != 0:
         e_hat = e_vec/ecc
     else:
         e_hat = np.array([0,0,0])
-    fpa = np.arcsin(np.dot(v_hat,r_hat)) 
+    fpa = math.asin(np.dot(v_hat,r_hat)) 
     
     if np.dot(v_hat,r_hat) < 0:
-        ta = 2*np.pi - np.arccos(np.dot(r_hat,e_hat))
+        ta = 2*np.pi - math.acos(np.dot(r_hat,e_hat))
     else:
-        ta = np.arccos(max(-1,min(1,np.dot(r_hat,e_hat))))
+        ta = math.acos(max(-1,min(1,np.dot(r_hat,e_hat))))
 
-    inc = np.arccos(h_hat[2])
+    inc = math.acos(h_hat[2])
     
     line_of_nodes = np.cross([0,0,1],h)
     n_mag = np.linalg.norm(line_of_nodes)
@@ -202,33 +202,34 @@ def state2kep(state, mu=398600.4):
     else:
         n_hat = np.array([0,0,0])
     if line_of_nodes[1] < 0:
-        raan = 2*np.pi - np.arccos(n_hat[0])
+        raan = 2*np.pi - math.acos(n_hat[0])
     else:
-        raan = np.arccos(n_hat[0])
+        raan = math.acos(n_hat[0])
 
     if e_hat[2] < 0:
-        aop = 2*np.pi - np.arccos(np.dot(n_hat,e_hat))
+        aop = 2*np.pi - math.acos(np.dot(n_hat,e_hat))
     else: 
-        aop = np.arccos(np.dot(n_hat,e_hat))
+        aop = math.acos(np.dot(n_hat,e_hat))
 
     rp = None
     ra = None
     va_mag = None
     vp_mag = None
+    v_inf = None
     if ecc < 1:
         delta = None
         rp = sma*(1-ecc)
         ra = sma*(1+ecc)
 
-        vp_mag = np.sqrt((1+ecc) * (mu/rp))
+        vp_mag = math.sqrt((1+ecc) * (mu/rp))
     
-        va_mag = np.sqrt((1-ecc) * (mu/ra))
+        va_mag = math.sqrt((1-ecc) * (mu/ra))
     if ecc >1:
         ra = np.inf
-        v_inf = np.sqrt(2*c3)
-        delta = 2 * np.arcsin(1/ecc)
+        v_inf = math.sqrt(2*c3)
+        delta = 2 * math.asin(1/ecc)
         rp = sma * (1 - ecc)
-        vp_mag = np.sqrt(2*(c3 + mu/rp))
+        vp_mag = math.sqrt(2*(c3 + mu/rp))
     
     param_dict = {'sma':sma,
                   'ecc':ecc,

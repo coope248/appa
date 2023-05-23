@@ -44,7 +44,7 @@ class Spacecraft():
 
     """
     
-    def __init__(self, t0, r0, v0):
+    def __init__(self, t0, initial_state):
         '''
         Creates spacecraft object given initial state information
 
@@ -64,9 +64,9 @@ class Spacecraft():
 
 
         self.t = np.array(t0)
-        self.y = np.array(r0+v0)
+        self.y = np.array(initial_state)
         self.ts = np.array([t0])
-        self.ys = np.array([r0+v0])
+        self.ys = np.array([initial_state])
         self.thrust = 0
         self.color = (0,0,0)
         self.name = None
