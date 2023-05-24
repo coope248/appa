@@ -1,3 +1,31 @@
 *.mk
 .DS_Store
 
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+$py.class
+
+# c extensions
+*.so
+
+# Distribution / packaging
+dist/
+build/
+lib/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+wheels/
+.installed.cfg
+MANIFEST
+*.egg
+*.egg-info/
+var/
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+

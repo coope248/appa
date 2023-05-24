@@ -8,46 +8,24 @@ import spiceypy as spice
 
 SPICE_PATH = os.path.join(os.path.dirname(__file__),"spice_data")
 
-def create_mk():
-    tls_file = "latest_leapseconds.tls"
-    bsp_file = "de432s.bsp"
-    mk_file = "ss_kernel.mk"
-
-    if not os.path.exists(os.path.join(SPICE_PATH,mk_file)):
-        with open(os.path.join(SPICE_PATH,mk_file),'x') as f:
-            kernel1 = os.path.join(SPICE_PATH,tls_file)
-            kernel2 = os.path.join(SPICE_PATH,bsp_file)
-            if len(kernel1) > 50:
-                new_k = ""
-                for i in range(math.floor(len(kernel1)/50)):
-                    new_k += kernel1[i*50:(i+1)*50]+"+',\n'"
-                new_k += kernel1[50*math.floor(len(kernel1)/50):]
-                kernel1 = new_k
-            if len(kernel2) > 50:
-                new_k = ""
-                for i in range(math.floor(len(kernel2)/50)):
-                    new_k += kernel2[i*50:(i+1)*50]+"+',\n'"
-                new_k += kernel2[50*math.floor(len(kernel2)/50):]
-                kernel2 = new_k
-            f.write("\\begindata\n\nKERNELS_TO_LOAD=(\n'"+kernel1+"',\n'"+kernel2+"'\n)\n\n\\begintext")
-
-def kep2state(sma = 6800, ecc = 0, inc = 0, aop = 0, raan = 0, ta = 0, mu =398600.4):
+# General Astrodynamics Tools
+def kep2state(sma, ecc=0, inc=0, aop=0, raan=0, ta=0, mu=398600.4):
     '''
     Function to calculate state vector (r and v) at given keplerian parameters
 
     Parameters:
     -----------
 
-    sma : float, optional
-        semi major axis of keplerian orbit
+    sma : float
+        semi major axis of orbit
     ecc : float, optional
-        eccentricity of keplerian orbit
+        eccentricity of orbit
     inc : float, optional
-        inclination of orbit
+        inclination of orbit in radians
     aop : float, optional
-        argument of periapsis
+        argument of periapsis in radians
     raan : float, optional
-        right ascension of the ascending node
+        right ascension of the ascending node in radians
     ta : float, optional
         true anomoly of object in radians
     mu : float, optional
@@ -61,10 +39,8 @@ def kep2state(sma = 6800, ecc = 0, inc = 0, aop = 0, raan = 0, ta = 0, mu =39860
 
     '''
 
-    #TODO: checks for hyperbolic orbit
-
-    if ecc < 1:
-        ...
+    if (ecc == 1):
+        raise Exception("eccentricity must be a real number other than 1")
 
     aol = ta+aop
     slr = sma * (1 - ecc**2)
@@ -88,7 +64,6 @@ def kep2state(sma = 6800, ecc = 0, inc = 0, aop = 0, raan = 0, ta = 0, mu =39860
 
     return np.array([x,y,z,vx,vy,vz])
 
-
 def modkep2state(ra=6800, rp=6800, inc=0, aop=0, raan=0, ta=0, mu=398600.4):
     '''
     Function to calculate state vector (r and v) at given modified keplerian parameters (based on GMAT modified keplerian option)
@@ -101,11 +76,11 @@ def modkep2state(ra=6800, rp=6800, inc=0, aop=0, raan=0, ta=0, mu=398600.4):
     rp : float, optional
         distance at periapsis of orbit
     inc : float, optional
-        inclination of orbit
+        inclination of orbit in radians
     aop : float, optional
-        argument of periapsis
+        argument of periapsis in radians
     raan : float, optional
-        right ascension of the ascending node
+        right ascension of the ascending node in radians
     ta : float, optional
         true anomoly of object in radians
     mu : float, optional
@@ -117,6 +92,9 @@ def modkep2state(ra=6800, rp=6800, inc=0, aop=0, raan=0, ta=0, mu=398600.4):
     state : array
         state vector in form of [x, y, z, vx, vy, vz] corresponding to same orbit and position that is input
     '''
+    if r_apo < r_per:
+        raise ValueError("Apoapsis must be larger than periapsis")
+
     sma = (r_per+r_apo)/2
     ecc = (r_apo/sma) - 1
     return kep2state(sma, ecc, inc, aop, raan, ta, mu)
@@ -248,10 +226,6 @@ def state2kep(state, mu=398600.4):
                   }
 
     return param_dict
-    
-
-
-
 
 def rth2eci(raan=0, inc=0, aol=0):
     #calculate rotation matrix from r_hat, theta_hat, h_hat frame to ECI frame
@@ -265,50 +239,7 @@ def rth2eci(raan=0, inc=0, aol=0):
     return np.array([x,y,z])
 
 
-def spice_object_getter(file, printopt=False):
-    objects = spice.spkobj(file)
-    ids,names,tcs_s,tcs_pretty = [],[],[],[]
-
-    if printopt:
-        print("Objects retrived from {}".format(file))
-
-    n=0 
-    for obj in objects:
-        ids.append(obj)
-    
-        tc_s = spice.wnfetd(spice.spkcov(file,ids[n]),n)
-        tcs_s.append(tc_s)
-        tcs_pretty.append([spice.timout(f,"YYYY MON DD HR:MM:SC.### (TDB) ::TDB" ) for f in tc_s])
-
-        try:
-            name = spice.bodc2n(obj)
-        except:
-            name = "UNKOWN"
-
-        names.append(name)
-
-        if printopt:
-            print("ID: {0:3}\t\tName: {1:35}\tTime Cov: {2} --> {3}".format(ids[-1],names[-1],tcs_pretty[-1][0],tcs_pretty[-1][1]))
-
-        
-
-    return ids,names,tcs_s,tcs_pretty
-
-def ephemeris_getter(target,times,frame,observer):
-    return np.array(spice.spkezr(target,times,frame,'NONE',observer)[0])
-
-def tc_array(tcs,n_steps):
-    arr = np.zeros((n_steps,1))
-    arr[:,0] = np.linspace(tcs[0],tcs[1],n_steps)
-    return arr
-    
-def load_ephemeris():
-    create_mk()
-    spice.furnsh(os.path.join(SPICE_PATH,"ss_kernel.mk"))
-    ids,names,tcs_s,tcs_pr = spice_object_getter(os.path.join(SPICE_PATH,"de432s.bsp"),True)
-    return ids,names,tcs_s,tcs_pr
-
-
+# Plotting Celestial Bodies
 def plot_body(body,t, steps, frame="J2000",observer="EARTH", show=True, color=None):
     '''
     Plots all trajectory points in state arrays for spacecraft object
@@ -420,10 +351,10 @@ def add_body_plot(fig,body, t, steps, frame="J2000",observer="EARTH",show=True,c
                       z = zMax,
                       selector=dict(type="scatter3d", mode="markers"))
     if show:
-        fig.show()
-       
+        fig.show()       
 
 
+# Orbital Perturbations
 def get_atmo(central_body,altitude):
     if central_body != "EARTH":
         raise Exception("Atmospheric drag only available for Earth currently")
@@ -443,3 +374,73 @@ def get_atmo(central_body,altitude):
 
 
 
+
+
+
+# Ephemeris handling
+def create_mk():
+    tls_file = "latest_leapseconds.tls"
+    bsp_file = "de432s.bsp"
+    mk_file = "ss_kernel.mk"
+
+    if not os.path.exists(os.path.join(SPICE_PATH,mk_file)):
+        with open(os.path.join(SPICE_PATH,mk_file),'x') as f:
+            kernel1 = os.path.join(SPICE_PATH,tls_file)
+            kernel2 = os.path.join(SPICE_PATH,bsp_file)
+            if len(kernel1) > 50:
+                new_k = ""
+                for i in range(math.floor(len(kernel1)/50)):
+                    new_k += kernel1[i*50:(i+1)*50]+"+',\n'"
+                new_k += kernel1[50*math.floor(len(kernel1)/50):]
+                kernel1 = new_k
+            if len(kernel2) > 50:
+                new_k = ""
+                for i in range(math.floor(len(kernel2)/50)):
+                    new_k += kernel2[i*50:(i+1)*50]+"+',\n'"
+                new_k += kernel2[50*math.floor(len(kernel2)/50):]
+                kernel2 = new_k
+            f.write("\\begindata\n\nKERNELS_TO_LOAD=(\n'"+kernel1+"',\n'"+kernel2+"'\n)\n\n\\begintext")
+
+def load_ephemeris():
+    create_mk()
+    spice.furnsh(os.path.join(SPICE_PATH,"ss_kernel.mk"))
+    ids,names,tcs_s,tcs_pr = spice_object_getter(os.path.join(SPICE_PATH,"de432s.bsp"),True)
+    return ids,names,tcs_s,tcs_pr
+
+def spice_object_getter(file, printopt=False):
+    objects = spice.spkobj(file)
+    ids,names,tcs_s,tcs_pretty = [],[],[],[]
+
+    if printopt:
+        print("Objects retrived from {}".format(file))
+
+    n=0 
+    for obj in objects:
+        ids.append(obj)
+    
+        tc_s = spice.wnfetd(spice.spkcov(file,ids[n]),n)
+        tcs_s.append(tc_s)
+        tcs_pretty.append([spice.timout(f,"YYYY MON DD HR:MM:SC.### (TDB) ::TDB" ) for f in tc_s])
+
+        try:
+            name = spice.bodc2n(obj)
+        except:
+            name = "UNKOWN"
+
+        names.append(name)
+
+        if printopt:
+            print("ID: {0:3}\t\tName: {1:35}\tTime Cov: {2} --> {3}".format(ids[-1],names[-1],tcs_pretty[-1][0],tcs_pretty[-1][1]))
+
+        
+
+    return ids,names,tcs_s,tcs_pretty
+
+def ephemeris_getter(target,times,frame,observer):
+    return np.array(spice.spkezr(target,times,frame,'NONE',observer)[0])
+
+def tc_array(tcs,n_steps):
+    arr = np.zeros((n_steps,1))
+    arr[:,0] = np.linspace(tcs[0],tcs[1],n_steps)
+    return arr
+    
