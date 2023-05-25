@@ -34,6 +34,7 @@ class Propagator():
     def __init__(self, central_body='EARTH', perturbations=[]):
         '''
         Creates propagator object with given parameters
+basic_propagator.frame = "ECLIPJ2000"
 
         Parameters:
         ----------
@@ -70,12 +71,16 @@ class Propagator():
         '''
         possible_perturbs = [
                 'low_thrust',
+                "J2",
+                "atmo_drag",
                 ]
         if perturbation not in possible_perturbs:
             raise Exception('Perturbation type not valid')
             return
-
-        self.perturbations.append(perturbation)
+        if (perturbation == "J2") and ((self.frame!="J2000") or (self.central_body != "EARTH")):
+            raise Exception("J2 only supported for Earth orbits using J2000 frame")
+        if perturbation not in self.perturbations:
+            self.perturbations.append(perturbation)
 
         
     def propagate(self, spacecraft, tf, dt, stop_cond=None):
@@ -98,16 +103,19 @@ class Propagator():
         t0 = spacecraft.t
         y0 = spacecraft.y
         steps = np.ceil((tf-t0)/dt)
-        t = np.zeros((int(steps+1),1))
+        t = np.ones((int(steps+1),1))*t0
         y = np.zeros((int(steps+1),6))
         t[0] = t0
         y[0] = y0
-        
         self.solver.set_initial_value(y[0],t[0])
         i = 1
+
         stop = False
-        if 'low_thrust' in self.perturbations:
+        if "low_thrust" in self.perturbations:
             self.thrust = spacecraft.thrust
+            self.thrust_dim = np.size(self.thrust)
+        if "atmo_drag" in self.perturbations:
+            self.ballistic_coef = spacecraft.ballistic_coefficient
         while (self.solver.successful()) and (i <= steps) and (not stop):
             self.solver.integrate(self.solver.t+dt)
             t[i] = self.solver.t
@@ -117,8 +125,8 @@ class Propagator():
                 stop = True in [f(self.solver.t,self.solver.y) for f in stop_cond]
 
         # if stopped, remove unused array indices
-        if 0 in t[1:]:
-            indices = np.where(t==0)[0]
+        if t0 in t[1:]:
+            indices = np.where(t==t0)[0]
             if indices[0]==0:
                 first_zero = indices[1]
             else:
@@ -153,16 +161,53 @@ class Propagator():
         
         r_mag = np.linalg.norm(pos)
         v_mag = np.linalg.norm(vel)
-        acc = -pos * bodies[self.central_body]["mu"] / pow(r_mag,3)
+        mu = bodies[self.central_body]["mu"]
+        cb_radius = bodies[self.central_body]["radius"]
+        acc = -pos * mu/ pow(r_mag,3)
         if 'low_thrust' in self.perturbations:
-            acc_lt = self.thrust * (vel / v_mag)
+            if  self.thrust_dim == 1:
+                acc_lt = self.thrust * (vel / v_mag)
+
+            elif self.thrust_dim == 3:
+                #convert VNB reference frame to inertial
+                v_hat = vel / np.linalg.norm(vel)
+                h = np.cross(pos,vel)
+                n_hat = h / np.linalg.norm(h)
+                b_hat = np.cross(v_hat,n_hat)
+
+                rot_mat = np.array([v_hat,n_hat,b_hat])
+                acc_lt = np.dot(self.thrust,rot_mat)
             acc += acc_lt
+        if "J2" in self.perturbations:
+            j2 = bodies[self.central_body]["J2"]
+            
+            t = t = pos/r_mag*(5*pos[2]**2/r_mag**2)-np.dot(pos/r_mag,[[1,0,0],[0,1,0],[0,0,3]])
+
+            acc_j2 = 1.5*j2*mu*cb_radius**2/r_mag**4*t
+            acc += acc_j2
+
+        if "atmo_drag" in self.perturbations:
+            print(r_mag,r_mag-cb_radius)
+            density = tb.get_atmo(self.central_body,r_mag - cb_radius)
+            i_omega_cb = bodies[self.central_body]["rotation_rate_"+str(self.frame)]
+            vel_rel = vel - np.cross(i_omega_cb,pos)
+            v_r_mag = np.linalg.norm(vel_rel)
+            e_hat_vr = vel_rel/v_r_mag
+            acc_drag = -density/(2*self.ballistic_coef)*v_r_mag**2*e_hat_vr
+            acc += acc_drag
+
+
+    
 
         for body in self.bodies:
-            r_body = tb.ephemeris_getter(body,t,self.frame,self.central_body)[0:3]
-            r_body_sc = pos - r_body
-            r_body_sc_mag = np.linalg.norm(r_body_sc)
-            acc += -r_body_sc * (bodies[body]["mu"] / pow(r_body_sc_mag,3))
+            body_mu = bodies[body]["mu"]
+            r_cb_body = tb.ephemeris_getter(body,t,self.frame,self.central_body)[:3]
+            r_sc_body = r_cb_body - pos
+            r_sc_mag = np.linalg.norm(r_sc_body)
+            r_cb_mag = np.linalg.norm(r_cb_body)
+            
+            acc_body = body_mu*(r_sc_body/r_sc_mag**3 - r_cb_body/r_cb_mag**3)
+            acc += acc_body
 
 
         return [vel[0], vel[1], vel[2], acc[0], acc[1], acc[2]]
