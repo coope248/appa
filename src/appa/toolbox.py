@@ -64,16 +64,16 @@ def kep2state(sma, ecc=0, inc=0, aop=0, raan=0, ta=0, mu=398600.4):
 
     return np.array([x,y,z,vx,vy,vz])
 
-def modkep2state(ra=6800, rp=6800, inc=0, aop=0, raan=0, ta=0, mu=398600.4):
+def modkep2state(ra, rp, inc=0, aop=0, raan=0, ta=0, mu=398600.4):
     '''
     Function to calculate state vector (r and v) at given modified keplerian parameters (based on GMAT modified keplerian option)
 
     Parameters:
     -----------
 
-    ra : float, optional
+    ra : float
         distance at apoapsis of orbit
-    rp : float, optional
+    rp : float
         distance at periapsis of orbit
     inc : float, optional
         inclination of orbit in radians

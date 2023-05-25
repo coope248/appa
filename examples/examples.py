@@ -51,8 +51,8 @@ if __name__ == "__main__":
     r0=y0[0:3]
     v0=y0[3:6]
     
-    sc = Spacecraft(t0,r0,v0)
-    sc2 = Spacecraft(t0,r0,v0)
+    sc = Spacecraft(t0,r0+v0)
+    sc2 = Spacecraft(t0,r0+v0)
     prop = Propagator()
     prop.bodies = ['MOON']
     sc.propagate(prop,500000,100)
@@ -71,7 +71,7 @@ if __name__ == "__main__":
     v0=y0[3:6]
     N = 25
     for i in range(N):
-        scs.append(Spacecraft(t0,r0,v0))
+        scs.append(Spacecraft(t0,r0+v0))
         scs[i].propagate(prop, 10000, 100)
         prop.add_perturbation('low_thrust')
         scs[i].thrust = 0.00001*(i+1)
