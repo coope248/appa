@@ -187,7 +187,6 @@ basic_propagator.frame = "ECLIPJ2000"
             acc += acc_j2
 
         if "atmo_drag" in self.perturbations:
-            print(r_mag,r_mag-cb_radius)
             density = tb.get_atmo(self.central_body,r_mag - cb_radius)
             i_omega_cb = bodies[self.central_body]["rotation_rate_"+str(self.frame)]
             vel_rel = vel - np.cross(i_omega_cb,pos)
