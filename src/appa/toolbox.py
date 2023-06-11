@@ -242,7 +242,7 @@ def rth2eci(raan=0, inc=0, aol=0):
 # Plotting Celestial Bodies
 def plot_body(body,t, steps, frame="J2000",observer="EARTH", show=True, color=None):
     '''
-    Plots all trajectory points in state arrays for spacecraft object
+    Plots celestial body position from ephemeris data
 
     Parameters:
     -----------
@@ -302,7 +302,7 @@ def plot_body(body,t, steps, frame="J2000",observer="EARTH", show=True, color=No
 def add_body_plot(fig,body, t, steps, frame="J2000",observer="EARTH",show=True,color=None):
 
     '''
-    Adds trajectory of spacecraft to an existing plotly figure
+    Adds trajectory of celestial body to an existing plotly figure
         
     Parameters:
     -----------
